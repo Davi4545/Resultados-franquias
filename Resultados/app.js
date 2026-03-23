@@ -1911,90 +1911,121 @@
 
   // Render completo do painel do vendedor (sempre mostra algo; nunca deixa a tela vazia)
   
-  // Arena de Resultados (vendedor) — painel mensal + intervalo de datas + conquistas
-  function renderSellerView(){
-  try{
-    state.options = state.options || { askValue:true, askPieces:true, vendorDivisor: 0 };
+// Garante que o state existe
+if (!window.state) window.state = {};
+
+function renderSellerView() {
+  console.log("Iniciando renderSellerView");
+
+  try {
+    state.options = state.options || { askValue: true, askPieces: true, vendorDivisor: 0 };
     state.sellers = Array.isArray(state.sellers) ? state.sellers : [];
     state.records = Array.isArray(state.records) ? state.records : [];
     state.badges = state.badges || { earned: [] };
-    if(!Array.isArray(state.badges.earned)) state.badges.earned = [];
-  }catch{}
 
-  try{ ensureBadges(); }catch(e){ console.error(e); }
-
-  const ARENA_SEALS=[
-    {name:"Bronze",icon:"🥉",min:0},
-    {name:"Prata",icon:"🥈",min:800},
-    {name:"Ouro",icon:"🏅",min:1500},
-    {name:"Diamante",icon:"💎",min:2500},
-    {name:"Esmeralda",icon:"🟢",min:4000}
-  ];
-
-  function calcArenaScore(records){
-    let value=0,pieces=0,sales=0;
-    for(const r of records){
-      if(r.outcome==="sold"){
-        sales++;
-        value+=Number(r.value||0);
-        pieces+=Number(r.pieces||0);
-      }
+    if (!Array.isArray(state.badges.earned)) {
+      state.badges.earned = [];
     }
-    const score=Math.round(value+(sales*50)+(pieces*25));
-    return{value,pieces,sales,score};
+  } catch (e) {
+    console.error("Erro ao preparar state:", e);
   }
 
-  function getSeal(score){
-    let current=ARENA_SEALS[0];
-    for(const s of ARENA_SEALS){
-      if(score>=s.min) current=s;
+  try {
+    if (typeof ensureBadges === "function") {
+      ensureBadges();
+    } else {
+      console.warn("ensureBadges não existe");
+    }
+  } catch (e) {
+    console.error("Erro em ensureBadges:", e);
+  }
+
+  const ARENA_SEALS = [
+    { name: "Bronze", icon: "🥉", min: 0 },
+    { name: "Prata", icon: "🥈", min: 800 },
+    { name: "Ouro", icon: "🏅", min: 1500 },
+    { name: "Diamante", icon: "💎", min: 2500 },
+    { name: "Esmeralda", icon: "🟢", min: 4000 }
+  ];
+
+  function calcArenaScore(records) {
+    let value = 0, pieces = 0, sales = 0;
+
+    for (const r of records) {
+      if (r.outcome === "sold") {
+        sales++;
+        value += Number(r.value || 0);
+        pieces += Number(r.pieces || 0);
+      }
+    }
+
+    const score = Math.round(value + (sales * 50) + (pieces * 25));
+    return { value, pieces, sales, score };
+  }
+
+  function getSeal(score) {
+    let current = ARENA_SEALS[0];
+    for (const s of ARENA_SEALS) {
+      if (score >= s.min) current = s;
     }
     return current;
   }
 
-  const view=document.getElementById("viewSeller");
-  if(!view) return;
+  const view = document.getElementById("viewSeller");
 
-  view.innerHTML=`
-<section class="card arenaCard">
-<div class="cardHeader">
-<div class="arenaTitle">
-<h2>Arena de Resultados</h2>
-<div class="rowRight">
-<button class="btn" id="btnSellerDownloadBadges">Baixar selos</button>
-</div>
-</div>
-</div>
+  if (!view) {
+    console.error("Elemento #viewSeller NÃO encontrado no HTML");
+    return;
+  }
 
-<div class="cardBody">
+  console.log("Elemento encontrado, renderizando...");
 
-<div class="arenaFilters">
-<div class="field flex">
-<label>Vendedor</label>
-<select id="sellerViewSelect"></select>
-</div>
+  view.innerHTML = 
+    <section class="card arenaCard">
+      <div class="cardHeader">
+        <div class="arenaTitle">
+          <h2>Arena de Resultados</h2>
+          <div class="rowRight">
+            <button class="btn" id="btnSellerDownloadBadges">Baixar selos</button>
+          </div>
+        </div>
+      </div>
 
-<div class="field">
-<label>Mês</label>
-<input id="sellerViewMonth" type="month"/>
-</div>
-</div>
+      <div class="cardBody">
 
-<div class="divider"></div>
+        <div class="arenaFilters">
+          <div class="field flex">
+            <label>Vendedor</label>
+            <select id="sellerViewSelect"></select>
+          </div>
 
-<div id="arenaResultsRanking"></div>
+          <div class="field">
+            <label>Mês</label>
+            <input id="sellerViewMonth" type="month"/>
+          </div>
+        </div>
 
-<div class="divider"></div>
+        <div class="divider"></div>
 
-<div class="arenaBadgesHead">
-<h3 class="arenaSectionTitle">Conquistas do mês</h3>
-</div>
+        <div id="arenaResultsRanking"></div>
 
-<div class="badgeGrid" id="sellerBadges"></div>
+        <div class="divider"></div>
 
-</div>
-</section>
-`;
+        <div class="arenaBadgesHead">
+          <h3 class="arenaSectionTitle">Conquistas do mês</h3>
+        </div>
+
+        <div class="badgeGrid" id="sellerBadges"></div>
+
+      </div>
+    </section>
+  `;
+
+  console.log("Render finalizado com sucesso");
+}
+
+// ⚠️ IMPORTANTE: chama a função
+renderSellerView();
 
   const sel=document.getElementById("sellerViewSelect");
   const mkInput=document.getElementById("sellerViewMonth");
