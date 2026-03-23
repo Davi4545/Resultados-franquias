@@ -2531,13 +2531,12 @@ ${rows.map((r,i)=>`
     }
   });
 
-  document.addEventListener("click", (e)=>{
-    const t = e.target;
-    if(!(t instanceof HTMLElement)) return;
-    if(t.id === "btnSellerDownloadBadges"){
-      try{ downloadSellerBadges(); }catch(err){ console.error(err); }
-    }
-  });
+  document.addEventListener("click", (e) => {
+  if (e.target.innerText.includes("Arena de Resultados")) {
+    console.log("CLICOU NA ARENA");
+    renderSellerView();
+  }
+});
 
 
   // Meta Rank
