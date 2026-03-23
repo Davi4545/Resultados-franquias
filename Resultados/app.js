@@ -2007,7 +2007,7 @@ function renderSellerView() {
 
         <div class="divider"></div>
 
-        <div id="arenaResultsRanking"></div>
+        <div id="viewSeller"></div>
 
         <div class="divider"></div>
 
