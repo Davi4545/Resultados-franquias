@@ -1,4 +1,4 @@
-// ======================
+  // ======================
   // PWA register
   // ======================
   (function registerSW(){
@@ -1974,7 +1974,6 @@ function renderSellerView(){
     <div class="cardHeader">
       <div class="arenaTitle">
         <h2>Arena de Resultados</h2>
-
         <div class="rowRight">
           <button class="btn" id="btnSellerDownloadBadges">Baixar selos</button>
         </div>
@@ -1984,18 +1983,43 @@ function renderSellerView(){
     <div class="cardBody">
 
       <div class="arenaFilters">
-
         <div class="field flex">
           <label>Vendedor</label>
           <select id="sellerViewSelect"></select>
         </div>
-
         <div class="field">
           <label>Mês</label>
           <input id="sellerViewMonth" type="month"/>
         </div>
-
+        <div class="field">
+          <label>De</label>
+          <input id="arenaFrom" type="date"/>
+        </div>
+        <div class="field">
+          <label>Até</label>
+          <input id="arenaTo" type="date"/>
+        </div>
       </div>
+
+      <div class="divider"></div>
+
+      <div class="kpis" id="arenaKpis"></div>
+
+      <div class="divider"></div>
+
+      <div id="arenaMetaBox"></div>
+
+      <div class="divider"></div>
+
+      <div id="arenaYearBox"></div>
+
+      <div class="divider"></div>
+
+      <div id="arenaChartBox"></div>
+
+      <div class="divider"></div>
+
+      <div id="arenaXpBox"></div>
 
       <div class="divider"></div>
 
@@ -2254,7 +2278,7 @@ function renderSellerView(){
         </div>
         <div class="divider"></div>
         <div class="meter good"><i style="width:${pctXP}%"></i></div>
-        <div class="hint" style="margin-top:8px">${stars>0 ? starIcons : 'Ganhe ⭐ batendo metas semanais e mensais.'}$</div>
+        <div class="hint" style="margin-top:8px">${stars>0 ? starIcons : 'Ganhe ⭐ batendo metas semanais e mensais.'}</div>
       `;
 
       const btn = document.getElementById('btnSellerDownloadBadges');
