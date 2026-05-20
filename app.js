@@ -1908,10 +1908,10 @@
 
   }
 
-  // Render completo do painel do vendedor (sempre mostra algo; nunca deixa a tela vazia)
-  
-  // Arena de Resultados (vendedor) — painel mensal + intervalo de datas + conquistas
-function renderSellerView(){
+// ======================
+  // renderSellerView e downloadSellerBadges definidas no index.html
+// ======================
+  function renderSellerView_DISABLED(){
 
   try{
     state.options = state.options || { askValue:true, askPieces:true, vendorDivisor: 0 };
@@ -2293,7 +2293,7 @@ function renderSellerView(){
   }
 
 
-  function downloadSellerBadges(){
+  function downloadSellerBadges_DISABLED(){
     const sid = $("sellerViewSelect").value;
     const mk = $("sellerViewMonth").value || monthKey();
     const seller = getSeller(sid);
