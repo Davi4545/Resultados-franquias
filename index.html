@@ -1181,7 +1181,71 @@
 </div>
 </section>
 <!-- VENDEDOR -->
-<div id="viewSeller" style="display:none"></div>
+<div id="viewSeller" style="display:none">
+<section class="card arenaCard">
+<div class="cardHeader">
+<div class="arenaTitle">
+<h2>Arena de Resultados</h2>
+<div class="rowRight">
+<button class="btn" id="btnSellerDownloadBadges">Baixar selos</button>
+</div>
+</div>
+</div>
+<div class="cardBody">
+
+<div class="arenaFilters">
+<div class="field flex">
+<label>Vendedor</label>
+<select id="sellerViewSelect"></select>
+</div>
+<div class="field">
+<label>Mês</label>
+<input id="sellerViewMonth" type="month"/>
+</div>
+<div class="field">
+<label>De</label>
+<input id="arenaFrom" type="date"/>
+</div>
+<div class="field">
+<label>Até</label>
+<input id="arenaTo" type="date"/>
+</div>
+</div>
+
+<div class="divider"></div>
+
+<div class="kpis" id="arenaKpis"></div>
+
+<div class="divider"></div>
+
+<div class="arenaBox" id="arenaMetaBox"></div>
+
+<div class="divider"></div>
+
+<div class="arenaBox" id="arenaYearBox"></div>
+
+<div class="divider"></div>
+
+<div class="arenaBox" id="arenaChartBox"></div>
+
+<div class="divider"></div>
+
+<div id="arenaResultsRanking"></div>
+
+<div class="divider"></div>
+
+<div class="arenaBadgesHead">
+<h3 class="arenaSectionTitle">Conquistas do mês</h3>
+</div>
+<div class="badgeGrid" id="sellerBadges"></div>
+
+<div class="divider"></div>
+
+<div class="arenaBox" id="arenaXpBox"></div>
+
+</div>
+</section>
+</div>
 </div></main>
 <!-- FX Layer -->
 <div id="fxLayer"></div>
@@ -3373,6 +3437,9 @@
           </div>
 
           <div class="divider"></div>
+          <div id="arenaResultsRanking"></div>
+
+          <div class="divider"></div>
           <div class="arenaBadgesHead">
             <h3 class="arenaSectionTitle" style="margin:0">Conquistas do mês</h3>
             <div class="tag">Colecione e troque por prêmios</div>
@@ -3626,6 +3693,50 @@
         <div class="hint" style="margin-top:8px">${stars>0 ? starIcons : 'Ganhe ⭐ batendo metas semanais e mensais.'}</div>
       `;
 
+      // Ranking da Arena — todos os vendedores no mês
+      const rankEl = document.getElementById('arenaResultsRanking');
+      if(rankEl){
+        const ARENA_SEALS = [
+          { name:"Bronze",    icon:"🥉", min:0     },
+          { name:"Prata",     icon:"🥈", min:800   },
+          { name:"Ouro",      icon:"🏅", min:1500  },
+          { name:"Esmeralda", icon:"🟢", min:2500  },
+          { name:"Diamante",  icon:"💎", min:40000 }
+        ];
+        function getSeal(score){
+          let cur = ARENA_SEALS[0];
+          for(const s of ARENA_SEALS){ if(score >= s.min) cur = s; }
+          return cur;
+        }
+        const allSellers = Array.isArray(state.sellers) ? state.sellers.filter(s=>s) : [];
+        const rankRows = allSellers.map(s=>{
+          const recs = state.records.filter(r=> r.sellerId===s.id && r.monthKey===mk2 && r.outcome==='sold');
+          const val   = recs.reduce((a,r)=>a+Number(r.value||0),0);
+          const pcs   = recs.reduce((a,r)=>a+Number(r.pieces||0),0);
+          const sales = recs.length;
+          const score = Math.round(val + sales*50 + pcs*25);
+          return { name:s.name||'Vendedor', val, pcs, sales, score, seal:getSeal(score) };
+        }).sort((a,b)=>b.score-a.score);
+
+        rankEl.innerHTML = `
+          <h3 class="arenaSectionTitle" style="margin:0 0 10px 0">Ranking da Arena — ${mk2}</h3>
+          <table>
+            <thead><tr><th>#</th><th>Vendedor</th><th>Faturamento</th><th>Peças</th><th>Pontos</th><th>Selo</th></tr></thead>
+            <tbody>
+              ${rankRows.map((r,i)=>`
+                <tr>
+                  <td>${i+1}</td>
+                  <td>${r.name}</td>
+                  <td>${formatMoney(r.val)}</td>
+                  <td>${formatNum(r.pcs)}</td>
+                  <td>${formatNum(r.score)}</td>
+                  <td>${r.seal.icon} ${r.seal.name}</td>
+                </tr>`).join('')}
+            </tbody>
+          </table>
+        `;
+      }
+
       const btn = document.getElementById('btnSellerDownloadBadges');
       if(btn) btn.onclick = downloadSellerBadges;
     };
@@ -3692,7 +3803,6 @@
     if($("viewMetas").style.display !== "none") renderGoals();
     if($("viewMetasRank").style.display !== "none") renderMetaRank();
     if($("viewNoConv").style.display !== "none") renderNoConv();
-    if($("viewSeller").style.display !== "none") try{ renderSellerView(); }catch(e){ console.error("renderSellerView in renderAll failed", e); }
   }
 
   $("btnCallNext").addEventListener("click", callNext);
