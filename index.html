@@ -802,7 +802,7 @@
 <button class="btn" id="btnGoals">Metas</button>
 <button class="btn" id="btnGoalRank">Ranking Metas</button>
 <button class="btn" id="btnNoConv">Não Convertidos</button>
-<button class="btn" id="btnSeller">Arena de Resultados</button>
+<button class="btn" id="btnSeller" onclick="['viewOps','viewDados','viewMetas','viewMetasRank','viewNoConv'].forEach(function(i){var e=document.getElementById(i);if(e)e.style.display='none'});document.getElementById('viewSeller').style.display='block';if(window.renderSellerView)window.renderSellerView();">Arena de Resultados</button>
 <button class="btn" id="btnSettings">Config</button>
 <button class="btn install" id="btnInstall" style="display:none">Instalar</button>
 </div>
@@ -813,7 +813,7 @@
 <button class="tab" id="tabMetas">Metas</button>
 <button class="tab" id="tabMetasRank">Ranking Metas</button>
 <button class="tab" id="tabNoConv">Não Convertidos</button>
-<button class="tab" id="tabSeller">Arena de Resultados</button>
+<button class="tab" id="tabSeller" onclick="['viewOps','viewDados','viewMetas','viewMetasRank','viewNoConv'].forEach(function(i){var e=document.getElementById(i);if(e)e.style.display='none'});document.getElementById('viewSeller').style.display='block';if(window.renderSellerView)window.renderSellerView();">Arena de Resultados</button>
 </div>
 </div>
 </header>
