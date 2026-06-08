@@ -2343,18 +2343,57 @@
         wrap.innerHTML = `<div class="hint">Sem registros no mês ${chosenMonth}.</div>`;
         return;
       }
-      const body = recsMonth
-        .slice()
-        .sort((a,b)=> (b.tsEnd||b.tsStart) - (a.tsEnd||a.tsStart))
-        .map(r=>{
-          const s = getSeller(r.sellerId);
-          const dt = new Date(r.tsStart);
-          const hh = String(dt.getHours()).padStart(2,"0");
-          const mm = String(dt.getMinutes()).padStart(2,"0");
-          const res = r.outcome === "sold" ? "Vendeu" : "Não vendeu";
-          return [r.dateKey, `${hh}:${mm}`, s?.name || "Vendedor", res, formatMoney(r.value||0), formatNum(r.pieces||0), (r.obs || "").slice(0,40)];
-        });
-      wrap.appendChild(makeTable(["Dia","Hora","Vendedor","Resultado","Valor","Peças","Obs"], body));
+
+      const isAdmin = (window.OMNIA_USER && window.OMNIA_USER.role === "admin");
+
+      const sorted = recsMonth.slice().sort((a,b)=> (b.tsEnd||b.tsStart) - (a.tsEnd||a.tsStart));
+
+      // Monta a tabela manualmente para poder incluir botão de excluir (só ADM)
+      const table = document.createElement("table");
+      const thead = document.createElement("thead");
+      const headers = ["Dia","Hora","Vendedor","Resultado","Valor","Peças","Obs"];
+      if(isAdmin) headers.push("Ação");
+      const trh = document.createElement("tr");
+      headers.forEach(h=>{ const th=document.createElement("th"); th.textContent=h; trh.appendChild(th); });
+      thead.appendChild(trh);
+      table.appendChild(thead);
+
+      const tbody = document.createElement("tbody");
+      sorted.forEach(r=>{
+        const s = getSeller(r.sellerId);
+        const dt = new Date(r.tsStart);
+        const hh = String(dt.getHours()).padStart(2,"0");
+        const mm = String(dt.getMinutes()).padStart(2,"0");
+        const res = r.outcome === "sold" ? "Vendeu" : "Não vendeu";
+        const cells = [r.dateKey, `${hh}:${mm}`, s?.name || "Vendedor", res, formatMoney(r.value||0), formatNum(r.pieces||0), (r.obs || "").slice(0,40)];
+
+        const tr = document.createElement("tr");
+        cells.forEach(c=>{ const td=document.createElement("td"); td.textContent=c; tr.appendChild(td); });
+
+        if(isAdmin){
+          const tdAcao = document.createElement("td");
+          const btn = document.createElement("button");
+          btn.className = "btn bad";
+          btn.textContent = "Excluir";
+          btn.style.padding = "4px 10px";
+          btn.style.fontSize = "12px";
+          btn.addEventListener("click", ()=>{
+            const tipo = r.outcome === "sold" ? `venda de ${formatMoney(r.value||0)}` : "registro de não-venda";
+            if(!confirm(`Excluir ${tipo} de ${s?.name||"Vendedor"} em ${r.dateKey} ${hh}:${mm}?\n\nEsta ação não pode ser desfeita.`)) return;
+            state.records = state.records.filter(x=> x.id !== r.id);
+            save(state);
+            renderData();
+            try{ renderKpis(); }catch(e){}
+            try{ renderAll(); }catch(e){}
+          });
+          tdAcao.appendChild(btn);
+          tr.appendChild(tdAcao);
+        }
+
+        tbody.appendChild(tr);
+      });
+      table.appendChild(tbody);
+      wrap.appendChild(table);
       return;
     }
   }
