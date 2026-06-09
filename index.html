@@ -4379,6 +4379,9 @@
 
     aplicarPermissoes(profile.role);
 
+    // Re-renderiza a operação agora que sabemos que é admin (mostra botão de excluir)
+    try{ if(window.OMNIA_RENDER) window.OMNIA_RENDER(); }catch(e){}
+
     // ===== PARTE 2: dados da loja no Firebase (tempo real) =====
     await iniciarSyncLoja(profile);
   });
