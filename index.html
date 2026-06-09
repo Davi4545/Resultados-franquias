@@ -803,6 +803,7 @@
 <button class="btn" id="btnGoalRank">Ranking Metas</button>
 <button class="btn" id="btnNoConv">Não Convertidos</button>
 <button class="btn" id="btnSeller">Arena de Resultados</button>
+<button class="btn warn" id="btnEditSelosFixo" style="display:none" onclick="if(window.abrirEditorSelos)window.abrirEditorSelos()">⚙️ Editar selos</button>
 <button class="btn" id="btnSettings">Config</button>
 <button class="btn install" id="btnInstall" style="display:none">Instalar</button>
 <span id="userInfo" style="font-size:12px;color:var(--muted);margin-left:4px;display:none"></span>
@@ -4196,18 +4197,25 @@
   $("closeSeller").addEventListener("click", ()=> closeModal($("sellerBack")));
   $("sellerBack").addEventListener("click", (e)=>{ if(e.target === $("sellerBack")) closeModal($("sellerBack")); });
 
+  let __criandoVendedor = false;
   window.__createSellerOriginal = async ()=>{
-    const name = $("sellerName").value.trim();
-    if(!name){ alert("Digite o nome do vendedor."); return; }
-    let photo = "";
-    const file = $("sellerPhoto").files?.[0];
-    if(file) photo = await fileToDataUrl(file);
-    const id = uid();
-    state.sellers.push({ id, name, photo, paused:false, active:true });
-    state.pool.push(id);
-    save(state);
-    renderAll();
-    closeModal($("sellerBack"));
+    if(__criandoVendedor) return;        // trava: evita criar 2x/3x no mesmo clique
+    __criandoVendedor = true;
+    try{
+      const name = $("sellerName").value.trim();
+      if(!name){ alert("Digite o nome do vendedor."); return; }
+      let photo = "";
+      const file = $("sellerPhoto").files?.[0];
+      if(file) photo = await fileToDataUrl(file);
+      const id = uid();
+      state.sellers.push({ id, name, photo, paused:false, active:true });
+      state.pool.push(id);
+      save(state);
+      renderAll();
+      closeModal($("sellerBack"));
+    } finally {
+      setTimeout(()=>{ __criandoVendedor = false; }, 600);
+    }
   };
   $("btnCreateSeller").addEventListener("click", ()=> window.__createSellerOriginal());
 
@@ -4278,21 +4286,9 @@
     });
 
     // Criar vendedor
-    bindSafeClick(document.getElementById('btnCreateSeller'), async ()=>{
-      const name=(document.getElementById('sellerName')?.value||'').trim();
-      if(!name){ alert('Digite o nome do vendedor.'); return; }
-      let photo='';
-      const file=document.getElementById('sellerPhoto')?.files?.[0];
-      if(file){
-        try{ photo = await fileToDataUrl(file); }catch{}
-      }
-      const id = uid();
-      state.sellers.push({ id, name, photo, paused:false, active:true });
-      state.pool.push(id);
-      save(state);
-      renderAll();
-      closeModal(document.getElementById('sellerBack'));
-      alert('Vendedor criado ✅');
+    bindSafeClick(document.getElementById('btnCreateSeller'), ()=>{
+      // usa sempre a função única (que tem trava anti-duplicação)
+      if(typeof window.__createSellerOriginal==='function') window.__createSellerOriginal();
     });
 
 
@@ -4365,27 +4361,7 @@
     // Criar vendedor
     if(id==='btnCreateSeller'){
       ev.preventDefault();
-      try{
-        const name=(document.getElementById('sellerName')?.value||'').trim();
-        if(!name){ alert('Digite o nome do vendedor.'); return; }
-
-        // usa a função original se existir
-        if(typeof window.__createSellerOriginal==='function'){
-          window.__createSellerOriginal();
-          return;
-        }
-
-        const idNew = uid();
-        state.sellers.push({ id: idNew, name, photo:'', paused:false, active:true });
-        state.pool.push(idNew);
-        save(state);
-        renderAll();
-        try{ closeModal(document.getElementById('sellerBack')); }catch{ document.getElementById('sellerBack').style.display='none'; }
-        alert('Vendedor criado ✅');
-      }catch(err){
-        console.error(err);
-        alert('Erro ao criar vendedor.');
-      }
+      // Não cria aqui — o listener direto do botão já chama a função única (com trava).
       return;
     }
   }, true);
@@ -4621,18 +4597,9 @@
       }
     }
 
-    // Botão "Editar selos" no topo — só para admin
-    if(isAdmin && !document.getElementById("btnEditSelosTop")){
-      const ref = document.getElementById("btnSettings");
-      if(ref && ref.parentNode){
-        const b = document.createElement("button");
-        b.className = "btn warn";
-        b.id = "btnEditSelosTop";
-        b.textContent = "⚙️ Editar selos";
-        b.onclick = ()=>{ try{ window.abrirEditorSelos(); }catch(e){ alert("Não foi possível abrir o editor."); } };
-        ref.parentNode.insertBefore(b, ref);
-      }
-    }
+    // Botão "Editar selos" no topo — só para admin (já existe no HTML, só mostra)
+    const btnSelos = document.getElementById("btnEditSelosFixo");
+    if(btnSelos) btnSelos.style.display = isAdmin ? "inline-block" : "none";
 
     // Vendedor: esconde abas/botões de visão geral da loja
     if(!isAdmin){
