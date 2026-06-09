@@ -776,6 +776,33 @@
 :root[data-theme="spacewhite"] .chip{ background: rgba(255,255,255,.72); border-color: rgba(11,16,32,.10);} 
 :root[data-theme="spacewhite"] .tab{ color: rgba(11,16,32,.72);} 
 :root[data-theme="spacewhite"] .tab.active{ color: rgba(11,16,32,.95);} 
+/* Tema branco: força textos escuros onde havia cor clara fixa */
+:root[data-theme="spacewhite"] body,
+:root[data-theme="spacewhite"] h1,
+:root[data-theme="spacewhite"] h2,
+:root[data-theme="spacewhite"] h3,
+:root[data-theme="spacewhite"] td,
+:root[data-theme="spacewhite"] th,
+:root[data-theme="spacewhite"] label,
+:root[data-theme="spacewhite"] .name,
+:root[data-theme="spacewhite"] .v,
+:root[data-theme="spacewhite"] .kpi .v,
+:root[data-theme="spacewhite"] .badgeTitle,
+:root[data-theme="spacewhite"] .arenaSectionTitle,
+:root[data-theme="spacewhite"] .cardHead h2,
+:root[data-theme="spacewhite"] input,
+:root[data-theme="spacewhite"] select,
+:root[data-theme="spacewhite"] .btn{ color:#0b1020 !important; }
+:root[data-theme="spacewhite"] .meta,
+:root[data-theme="spacewhite"] .hint,
+:root[data-theme="spacewhite"] .tiny,
+:root[data-theme="spacewhite"] .kpi .t,
+:root[data-theme="spacewhite"] th{ color: rgba(11,16,32,.62) !important; }
+:root[data-theme="spacewhite"] input,
+:root[data-theme="spacewhite"] select,
+:root[data-theme="spacewhite"] table{ background: rgba(255,255,255,.75) !important; }
+:root[data-theme="spacewhite"] input::placeholder{ color: rgba(11,16,32,.4) !important; }
+:root[data-theme="spacewhite"] tr:hover td{ background: rgba(11,16,32,.04) !important; }
 .themeBtn.spacewhite .dot{
   background: linear-gradient(135deg, #ffffff, #dbe7ff 45%, #c7d2fe);
   box-shadow: 0 0 0 1px rgba(11,16,32,.12) inset, 0 6px 18px rgba(59,130,246,.20);
