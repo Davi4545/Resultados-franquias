@@ -3221,26 +3221,38 @@
     DAY_GOAL: { icon:"✅", title:"Meta do Dia Batida", desc:"Bateu a meta diária do dia." },
     WEEK_GOAL: { icon:"🏁", title:"Meta da Semana Batida", desc:"Bateu a meta da semana." },
     MONTH_GOAL: { icon:"🌙", title:"Meta do Mês Batida", desc:"Chegou na meta do mês." },
-    TOP_CONV: { icon:"👑", title:"Rei da Conversão", desc:"Fechou o mês com conversão acima de 85%." },
+    TOP_CONV: { icon:"👑", title:"Rei da Conversão", desc:"Fechou o mês com conversão acima de 85%.", val:85 },
 
-    BIG_SALE: { icon:"💎", title:"Venda Suprema", desc:"Fez uma venda acima de R$ 5.000." },
-    SALE_TOP: { icon:"🚀", title:"Venda Top", desc:"Venda entre R$ 1.500 e R$ 2.000." },
-    SALE_RESPECT: { icon:"🫡", title:"Venda de Respeito", desc:"Venda entre R$ 2.500 e R$ 3.500." },
+    BIG_SALE: { icon:"💎", title:"Venda Suprema", desc:"Fez uma venda acima de R$ 5.000.", val:5000 },
+    SALE_TOP: { icon:"🚀", title:"Venda Top", desc:"Venda entre R$ 1.500 e R$ 2.000.", min:1500, max:2000 },
+    SALE_RESPECT: { icon:"🫡", title:"Venda de Respeito", desc:"Venda entre R$ 2.500 e R$ 3.500.", min:2500, max:3500 },
     BIGGEST_SALE: { icon:"🏆", title:"Maior Venda do Mês", desc:"Maior venda do mês." },
 
-    TVA_COMBO: { icon:"🔥", title:"Combo Master", desc:"TVA ≥ 95% (quase todas as vendas com 2+ itens no mês)." },
+    TVA_COMBO: { icon:"🔥", title:"Combo Master", desc:"TVA ≥ 95% (quase todas as vendas com 2+ itens no mês).", val:95 },
 
-    PA_BRONZE: { icon:"🥉", title:"P.A Bronze", desc:"P.A do mês ≥ 2,40." },
-    PA_SILVER: { icon:"🥈", title:"P.A Prata", desc:"P.A do mês ≥ 2,60." },
-    PA_GOLD: { icon:"🥇", title:"P.A Ouro", desc:"P.A do mês ≥ 2,70." },
+    PA_BRONZE: { icon:"🥉", title:"P.A Bronze", desc:"P.A do mês ≥ 2,40.", val:2.40 },
+    PA_SILVER: { icon:"🥈", title:"P.A Prata", desc:"P.A do mês ≥ 2,60.", val:2.60 },
+    PA_GOLD: { icon:"🥇", title:"P.A Ouro", desc:"P.A do mês ≥ 2,70.", val:2.70 },
 
-    TM_SILVER: { icon:"🧳", title:"T.M Mala de Prata", desc:"Ticket médio do mês entre R$ 600,00 e R$ 699,99." },
-    TM_GOLD: { icon:"💼", title:"T.M Mala de Ouro", desc:"Ticket médio do mês entre R$ 800,00 e R$ 899,99." },
-    TM_SUPREME: { icon:"🎒", title:"T.M Mala Suprema", desc:"Ticket médio do mês acima de R$ 950,00." },
+    TM_SILVER: { icon:"🧳", title:"T.M Mala de Prata", desc:"Ticket médio do mês entre R$ 600,00 e R$ 699,99.", min:600, max:699.99 },
+    TM_GOLD: { icon:"💼", title:"T.M Mala de Ouro", desc:"Ticket médio do mês entre R$ 800,00 e R$ 899,99.", min:800, max:899.99 },
+    TM_SUPREME: { icon:"🎒", title:"T.M Mala Suprema", desc:"Ticket médio do mês acima de R$ 950,00.", val:950 },
 
-    MAGIC_5: { icon:"✨", title:"Selo Mágico", desc:"Surpresa: bateu 5 metas mensais no total." },
-    SUPREME_12: { icon:"🌌", title:"Selo Supremo", desc:"Surpresa: bateu 12 metas mensais no total." },
+    MAGIC_5: { icon:"✨", title:"Selo Mágico", desc:"Surpresa: bateu 5 metas mensais no total.", val:5 },
+    SUPREME_12: { icon:"🌌", title:"Selo Supremo", desc:"Surpresa: bateu 12 metas mensais no total.", val:12 },
   };
+
+  // Mescla a definição padrão do selo com a config editada pelo ADM (salva no state da loja)
+  function getBadgeDef(key){
+    const base = BADGE_DEFS[key] || {};
+    const cfg = (state.badgeConfig && state.badgeConfig[key]) || {};
+    return { ...base, ...cfg };
+  }
+  // Selo está ativo? (ADM pode desativar). Padrão: ativo.
+  function isBadgeEnabled(key){
+    const cfg = (state.badgeConfig && state.badgeConfig[key]) || {};
+    return cfg.enabled !== false;
+  }
 
   function ensureBadges(){
     if(!state.badges) state.badges = { earned: [] };
@@ -3329,68 +3341,83 @@
     const tk = rec.dateKey;
     const week = weekOfMonth(tk);
 
+    // helper: concede selo usando a config editada da loja, se o selo estiver ativo
+    function award(key, def, extra){
+      if(!isBadgeEnabled(def)) return;
+      const d = getBadgeDef(def);
+      awardBadge(Object.assign({ key, scope:'seller', sellerId:sid, monthKey:mk, def, title:d.title, desc:d.desc, icon:d.icon, ts: nowTs() }, extra||{}));
+    }
+
     // Sale-based instant badges
     const v = Number(rec.value||0);
-    if(v > 5000) awardBadge({ key:`SELLER_${sid}_${rec.id}_BIG_SALE`, scope:'seller', sellerId:sid, monthKey:mk, def:'BIG_SALE', title:BADGE_DEFS.BIG_SALE.title, desc:BADGE_DEFS.BIG_SALE.desc, icon:BADGE_DEFS.BIG_SALE.icon, ts: nowTs() });
-    if(v >= 1500 && v <= 2000) awardBadge({ key:`SELLER_${sid}_${rec.id}_SALE_TOP`, scope:'seller', sellerId:sid, monthKey:mk, def:'SALE_TOP', title:BADGE_DEFS.SALE_TOP.title, desc:BADGE_DEFS.SALE_TOP.desc, icon:BADGE_DEFS.SALE_TOP.icon, ts: nowTs() });
-    if(v >= 2500 && v <= 3500) awardBadge({ key:`SELLER_${sid}_${rec.id}_SALE_RESPECT`, scope:'seller', sellerId:sid, monthKey:mk, def:'SALE_RESPECT', title:BADGE_DEFS.SALE_RESPECT.title, desc:BADGE_DEFS.SALE_RESPECT.desc, icon:BADGE_DEFS.SALE_RESPECT.icon, ts: nowTs() });
+    const dBig = getBadgeDef('BIG_SALE'), dTop = getBadgeDef('SALE_TOP'), dResp = getBadgeDef('SALE_RESPECT');
+    if(v > (dBig.val??5000)) award(`SELLER_${sid}_${rec.id}_BIG_SALE`, 'BIG_SALE');
+    if(v >= (dTop.min??1500) && v <= (dTop.max??2000)) award(`SELLER_${sid}_${rec.id}_SALE_TOP`, 'SALE_TOP');
+    if(v >= (dResp.min??2500) && v <= (dResp.max??3500)) award(`SELLER_${sid}_${rec.id}_SALE_RESPECT`, 'SALE_RESPECT');
 
     // Day goal
     const dayGoal = sellerGoalDay(sid, mk);
     const dayRev = sellerRevenueDay(sid, tk);
     if(dayGoal>0 && dayRev >= dayGoal){
-      awardBadge({ key:`SELLER_${sid}_${tk}_DAY_GOAL`, scope:'seller', sellerId:sid, monthKey:mk, dateKey:tk, def:'DAY_GOAL', title:BADGE_DEFS.DAY_GOAL.title, desc:BADGE_DEFS.DAY_GOAL.desc, icon:BADGE_DEFS.DAY_GOAL.icon, ts: nowTs() });
+      award(`SELLER_${sid}_${tk}_DAY_GOAL`, 'DAY_GOAL', { dateKey:tk });
     }
 
     // Week goal
     const wGoal = sellerGoalWeek(sid, mk, week);
     const wRev = sellerRevenueWeek(sid, mk, week);
     if(wGoal>0 && wRev >= wGoal){
-      awardBadge({ key:`SELLER_${sid}_${mk}_W${week}_WEEK_GOAL`, scope:'seller', sellerId:sid, monthKey:mk, week, def:'WEEK_GOAL', title:BADGE_DEFS.WEEK_GOAL.title, desc:BADGE_DEFS.WEEK_GOAL.desc, icon:BADGE_DEFS.WEEK_GOAL.icon, ts: nowTs() });
+      award(`SELLER_${sid}_${mk}_W${week}_WEEK_GOAL`, 'WEEK_GOAL', { week });
     }
 
     // Month goal
     const mGoal = sellerGoalMonthly(sid, mk);
     const mRev = sellerSoldInMonth(sid, mk).reduce((s,r)=>s+Number(r.value||0),0);
     if(mGoal>0 && mRev >= mGoal){
-      awardBadge({ key:`SELLER_${sid}_${mk}_MONTH_GOAL`, scope:'seller', sellerId:sid, monthKey:mk, def:'MONTH_GOAL', title:BADGE_DEFS.MONTH_GOAL.title, desc:BADGE_DEFS.MONTH_GOAL.desc, icon:BADGE_DEFS.MONTH_GOAL.icon, ts: nowTs() });
+      award(`SELLER_${sid}_${mk}_MONTH_GOAL`, 'MONTH_GOAL');
     }
 
-    // Biggest sale of month (re-evaluate each sale)
+    // Biggest sale of month
     const sold = sellerSoldInMonth(sid, mk);
-    if(sold.length){
+    if(sold.length && isBadgeEnabled('BIGGEST_SALE')){
       const max = sold.reduce((a,b)=> (Number(b.value||0)>Number(a.value||0) ? b : a), sold[0]);
-      awardBadge({ key:`SELLER_${sid}_${mk}_BIGGEST_${max.id}`, scope:'seller', sellerId:sid, monthKey:mk, def:'BIGGEST_SALE', title:BADGE_DEFS.BIGGEST_SALE.title, desc:BADGE_DEFS.BIGGEST_SALE.desc+` (${formatMoney(max.value)})`, icon:BADGE_DEFS.BIGGEST_SALE.icon, ts: nowTs() });
+      const dBs = getBadgeDef('BIGGEST_SALE');
+      awardBadge({ key:`SELLER_${sid}_${mk}_BIGGEST_${max.id}`, scope:'seller', sellerId:sid, monthKey:mk, def:'BIGGEST_SALE', title:dBs.title, desc:dBs.desc+` (${formatMoney(max.value)})`, icon:dBs.icon, ts: nowTs() });
     }
 
-    // End-of-month style badges: P.A, TVA e Conversão (avaliado a qualquer venda do mês)
+    // P.A, TVA, T.M, Conversão
     const all = sellerRecsInMonth(sid, mk);
     const a = agg(all);
 
-    // P.A (peças por venda)
-    if(a.paPerSale >= 2.40) awardBadge({ key:`SELLER_${sid}_${mk}_PA_BRONZE`, def:'PA_BRONZE', scope:'seller', sellerId:sid, monthKey:mk, title:BADGE_DEFS.PA_BRONZE.title, desc:BADGE_DEFS.PA_BRONZE.desc, icon:BADGE_DEFS.PA_BRONZE.icon, ts: nowTs() });
-    if(a.paPerSale >= 2.60) awardBadge({ key:`SELLER_${sid}_${mk}_PA_SILVER`, def:'PA_SILVER', scope:'seller', sellerId:sid, monthKey:mk, title:BADGE_DEFS.PA_SILVER.title, desc:BADGE_DEFS.PA_SILVER.desc, icon:BADGE_DEFS.PA_SILVER.icon, ts: nowTs() });
-    if(a.paPerSale >= 2.70) awardBadge({ key:`SELLER_${sid}_${mk}_PA_GOLD`, def:'PA_GOLD', scope:'seller', sellerId:sid, monthKey:mk, title:BADGE_DEFS.PA_GOLD.title, desc:BADGE_DEFS.PA_GOLD.desc, icon:BADGE_DEFS.PA_GOLD.icon, ts: nowTs() });
+    const dPaB = getBadgeDef('PA_BRONZE'), dPaP = getBadgeDef('PA_SILVER'), dPaO = getBadgeDef('PA_GOLD');
+    if(a.paPerSale >= (dPaB.val??2.40)) award(`SELLER_${sid}_${mk}_PA_BRONZE`, 'PA_BRONZE');
+    if(a.paPerSale >= (dPaP.val??2.60)) award(`SELLER_${sid}_${mk}_PA_SILVER`, 'PA_SILVER');
+    if(a.paPerSale >= (dPaO.val??2.70)) award(`SELLER_${sid}_${mk}_PA_GOLD`, 'PA_GOLD');
 
-    // TVA (taxa de venda agrupada) = % de vendas com 2+ itens no mês
+    // TVA
     const soldOnly = (all||[]).filter(r=>r.outcome==='sold');
     const grouped = soldOnly.filter(r=>Number(r.pieces||0) >= 2).length;
     const tva = soldOnly.length ? (grouped/soldOnly.length)*100 : 0;
-    if(tva >= 95) awardBadge({ key:`SELLER_${sid}_${mk}_TVA_COMBO`, def:'TVA_COMBO', scope:'seller', sellerId:sid, monthKey:mk, title:BADGE_DEFS.TVA_COMBO.title, desc:`TVA do mês: ${tva.toFixed(1)}%`, icon:BADGE_DEFS.TVA_COMBO.icon, ts: nowTs() });
+    const dTva = getBadgeDef('TVA_COMBO');
+    if(tva >= (dTva.val??95) && isBadgeEnabled('TVA_COMBO')){
+      awardBadge({ key:`SELLER_${sid}_${mk}_TVA_COMBO`, def:'TVA_COMBO', scope:'seller', sellerId:sid, monthKey:mk, title:dTva.title, desc:`TVA do mês: ${tva.toFixed(1)}%`, icon:dTva.icon, ts: nowTs() });
+    }
 
     // Ticket médio
     const tm = a.sales>0 ? (a.revenue/a.sales) : 0;
-    if(tm >= 600 && tm <= 699.99) awardBadge({ key:`SELLER_${sid}_${mk}_TM_SILVER`, def:'TM_SILVER', scope:'seller', sellerId:sid, monthKey:mk, title:BADGE_DEFS.TM_SILVER.title, desc:BADGE_DEFS.TM_SILVER.desc, icon:BADGE_DEFS.TM_SILVER.icon, ts: nowTs() });
-    if(tm >= 800 && tm <= 899.99) awardBadge({ key:`SELLER_${sid}_${mk}_TM_GOLD`, def:'TM_GOLD', scope:'seller', sellerId:sid, monthKey:mk, title:BADGE_DEFS.TM_GOLD.title, desc:BADGE_DEFS.TM_GOLD.desc, icon:BADGE_DEFS.TM_GOLD.icon, ts: nowTs() });
-    if(tm >= 950) awardBadge({ key:`SELLER_${sid}_${mk}_TM_SUPREME`, def:'TM_SUPREME', scope:'seller', sellerId:sid, monthKey:mk, title:BADGE_DEFS.TM_SUPREME.title, desc:BADGE_DEFS.TM_SUPREME.desc, icon:BADGE_DEFS.TM_SUPREME.icon, ts: nowTs() });
+    const dTmS = getBadgeDef('TM_SILVER'), dTmG = getBadgeDef('TM_GOLD'), dTmSup = getBadgeDef('TM_SUPREME');
+    if(tm >= (dTmS.min??600) && tm <= (dTmS.max??699.99)) award(`SELLER_${sid}_${mk}_TM_SILVER`, 'TM_SILVER');
+    if(tm >= (dTmG.min??800) && tm <= (dTmG.max??899.99)) award(`SELLER_${sid}_${mk}_TM_GOLD`, 'TM_GOLD');
+    if(tm >= (dTmSup.val??950)) award(`SELLER_${sid}_${mk}_TM_SUPREME`, 'TM_SUPREME');
 
-    // Conversão alta no mês
-    if(a.conv >= 85) awardBadge({ key:`SELLER_${sid}_${mk}_TOP_CONV`, def:'TOP_CONV', scope:'seller', sellerId:sid, monthKey:mk, title:BADGE_DEFS.TOP_CONV.title, desc:BADGE_DEFS.TOP_CONV.desc, icon:BADGE_DEFS.TOP_CONV.icon, ts: nowTs() });
+    // Conversão
+    const dConv = getBadgeDef('TOP_CONV');
+    if(a.conv >= (dConv.val??85)) award(`SELLER_${sid}_${mk}_TOP_CONV`, 'TOP_CONV');
 
-    // Selos surpresa por quantidade de metas mensais batidas (acumulado)
+    // Selos surpresa por metas mensais
     const monthWins = (state.badges?.earned||[]).filter(e=>e.scope==='seller' && e.sellerId===sid && e.def==='MONTH_GOAL').length;
-    if(monthWins >= 5) awardBadge({ key:`SELLER_${sid}_MAGIC_5`, def:'MAGIC_5', scope:'seller', sellerId:sid, monthKey:mk, title:BADGE_DEFS.MAGIC_5.title, desc:BADGE_DEFS.MAGIC_5.desc, icon:BADGE_DEFS.MAGIC_5.icon, ts: nowTs() });
-    if(monthWins >= 12) awardBadge({ key:`SELLER_${sid}_SUPREME_12`, def:'SUPREME_12', scope:'seller', sellerId:sid, monthKey:mk, title:BADGE_DEFS.SUPREME_12.title, desc:BADGE_DEFS.SUPREME_12.desc, icon:BADGE_DEFS.SUPREME_12.icon, ts: nowTs() });
+    const dM5 = getBadgeDef('MAGIC_5'), dS12 = getBadgeDef('SUPREME_12');
+    if(monthWins >= (dM5.val??5)) award(`SELLER_${sid}_MAGIC_5`, 'MAGIC_5');
+    if(monthWins >= (dS12.val??12)) award(`SELLER_${sid}_SUPREME_12`, 'SUPREME_12');
 
   }
 
@@ -3467,7 +3494,10 @@
           <div class="divider"></div>
           <div class="arenaBadgesHead">
             <h3 class="arenaSectionTitle" style="margin:0">Conquistas do mês</h3>
-            <div class="tag">Colecione e troque por prêmios</div>
+            <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+              <button class="btn warn" id="btnEditarSelos" style="display:none">⚙️ Editar selos</button>
+              <div class="tag">Colecione e troque por prêmios</div>
+            </div>
           </div>
           <div class="badgeGrid" id="sellerBadges"></div>
           <div class="hint arenaHint">Selos destravam automaticamente. No fim do mês, baixe e troque por prêmios. ⭐</div>
@@ -3682,7 +3712,8 @@
 
       const cards = [];
       for(const defKey of badgeOrder){
-        const def = BADGE_DEFS[defKey];
+        if(!isBadgeEnabled(defKey)) continue; // ADM desativou: não mostra
+        const def = getBadgeDef(defKey);
         if(!def) continue;
         const list = earnedByDef.get(defKey) || [];
         const unlocked = list.length>0;
@@ -3721,6 +3752,17 @@
 
       const btn = document.getElementById('btnSellerDownloadBadges');
       if(btn) btn.onclick = downloadSellerBadges;
+
+      // Botão editar selos: só para admin
+      const btnEd = document.getElementById('btnEditarSelos');
+      if(btnEd){
+        if(window.OMNIA_USER && window.OMNIA_USER.role==="admin"){
+          btnEd.style.display = "inline-block";
+          btnEd.onclick = abrirEditorSelos;
+        } else {
+          btnEd.style.display = "none";
+        }
+      }
       }catch(e){ console.error('Arena update() error:', e); }
     };
 
@@ -3734,6 +3776,124 @@
 
   // Expõe globalmente para o segundo script e para o PWA/cache
   window.renderSellerView = renderSellerView;
+
+  // ======================
+  // EDITOR DE SELOS (ADM)
+  // ======================
+  function abrirEditorSelos(){
+    if(!(window.OMNIA_USER && window.OMNIA_USER.role==="admin")){
+      alert("Apenas administradores podem editar os selos."); return;
+    }
+    state.badgeConfig = state.badgeConfig || {};
+
+    const ordem = [
+      'DAY_GOAL','WEEK_GOAL','MONTH_GOAL',
+      'TVA_COMBO','PA_BRONZE','PA_SILVER','PA_GOLD',
+      'TM_SILVER','TM_GOLD','TM_SUPREME',
+      'SALE_TOP','SALE_RESPECT','BIG_SALE','BIGGEST_SALE',
+      'TOP_CONV','MAGIC_5','SUPREME_12'
+    ];
+
+    // cria overlay
+    let back = document.getElementById('selosEditorBack');
+    if(back) back.remove();
+    back = document.createElement('div');
+    back.id = 'selosEditorBack';
+    back.style.cssText = "position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:9999;display:flex;align-items:flex-start;justify-content:center;overflow:auto;padding:30px 16px;";
+
+    const tiposTexto = {
+      val: "Valor mínimo",
+      faixa: "Faixa (mín – máx)",
+      none: "Sem valor (automático)"
+    };
+
+    function linhaSelo(key){
+      const base = BADGE_DEFS[key] || {};
+      const cfg = state.badgeConfig[key] || {};
+      const def = { ...base, ...cfg };
+      const enabled = cfg.enabled !== false;
+      const temFaixa = (base.min !== undefined);
+      const temVal = (base.val !== undefined);
+
+      let camposValor = "";
+      if(temFaixa){
+        camposValor = `
+          <input type="text" data-k="${key}" data-f="min" value="${def.min ?? ''}" placeholder="mín" style="width:90px"/>
+          <input type="text" data-k="${key}" data-f="max" value="${def.max ?? ''}" placeholder="máx" style="width:90px"/>`;
+      } else if(temVal){
+        camposValor = `<input type="text" data-k="${key}" data-f="val" value="${def.val ?? ''}" placeholder="valor" style="width:110px"/>`;
+      } else {
+        camposValor = `<span style="color:#9db0d0;font-size:12px">automático</span>`;
+      }
+
+      return `
+        <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;padding:12px;border:1px solid rgba(255,255,255,.1);border-radius:12px;margin-bottom:10px;${enabled?'':'opacity:.5'}">
+          <input type="text" data-k="${key}" data-f="icon" value="${def.icon||''}" style="width:50px;text-align:center;font-size:18px" title="Ícone/emoji"/>
+          <div style="flex:1;min-width:180px;display:flex;flex-direction:column;gap:6px">
+            <input type="text" data-k="${key}" data-f="title" value="${(def.title||'').replace(/"/g,'&quot;')}" placeholder="Título" style="font-weight:700"/>
+            <input type="text" data-k="${key}" data-f="desc" value="${(def.desc||'').replace(/"/g,'&quot;')}" placeholder="Descrição"/>
+          </div>
+          <div style="display:flex;gap:6px;align-items:center">${camposValor}</div>
+          <label style="display:flex;gap:4px;align-items:center;font-size:12px;cursor:pointer;white-space:nowrap">
+            <input type="checkbox" data-k="${key}" data-f="enabled" ${enabled?'checked':''}/> Ativo
+          </label>
+        </div>`;
+    }
+
+    back.innerHTML = `
+      <div style="background:#0f141c;border:1px solid rgba(255,255,255,.12);border-radius:18px;max-width:760px;width:100%;padding:24px;">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
+          <h2 style="font-size:18px;font-weight:900">⚙️ Editar selos da loja</h2>
+          <button class="btn" id="selosFechar">✕ Fechar</button>
+        </div>
+        <p style="color:#9db0d0;font-size:13px;margin-bottom:18px">Edite ícone, título, descrição e os valores. Desmarque "Ativo" para esconder um selo. Vale só para esta loja.</p>
+        <div id="selosLista">${ordem.map(linhaSelo).join('')}</div>
+        <div style="display:flex;gap:10px;justify-content:flex-end;margin-top:16px">
+          <button class="btn" id="selosCancelar">Cancelar</button>
+          <button class="btn good" id="selosSalvar">Salvar alterações</button>
+        </div>
+      </div>`;
+
+    document.body.appendChild(back);
+
+    // estilo dos inputs internos
+    back.querySelectorAll('input[type="text"]').forEach(inp=>{
+      inp.style.cssText += "padding:8px 10px;border-radius:8px;border:1px solid rgba(255,255,255,.12);background:rgba(255,255,255,.06);color:#e7eefc;font-size:13px;";
+    });
+
+    function fechar(){ back.remove(); }
+    document.getElementById('selosFechar').onclick = fechar;
+    document.getElementById('selosCancelar').onclick = fechar;
+    back.addEventListener('click', (e)=>{ if(e.target===back) fechar(); });
+
+    document.getElementById('selosSalvar').onclick = ()=>{
+      const novo = state.badgeConfig || {};
+      ordem.forEach(key=>{
+        novo[key] = novo[key] || {};
+      });
+      back.querySelectorAll('input[data-k]').forEach(inp=>{
+        const k = inp.dataset.k, f = inp.dataset.f;
+        novo[k] = novo[k] || {};
+        if(f==='enabled'){ novo[k].enabled = inp.checked; }
+        else if(f==='min' || f==='max' || f==='val'){
+          const n = parseBRNumber(inp.value);
+          if(inp.value.trim()==='') delete novo[k][f];
+          else novo[k][f] = n;
+        }
+        else { // icon, title, desc
+          if(inp.value.trim()==='') delete novo[k][f];
+          else novo[k][f] = inp.value.trim();
+        }
+      });
+      state.badgeConfig = novo;
+      save(state);
+      fechar();
+      alert("Selos atualizados! ✅ As mudanças valem para as próximas avaliações.");
+      try{ if(window.OMNIA_RENDER) window.OMNIA_RENDER(); }catch(e){}
+      try{ renderSellerView(); }catch(e){}
+    };
+  }
+  window.abrirEditorSelos = abrirEditorSelos;
 
   function downloadSellerBadges(){
     const sid = $("sellerViewSelect").value;
