@@ -160,6 +160,28 @@
 
   function nomeLoja(id){ const l=LOJAS.find(x=>x.id===id); return l?(l.name||l.code):"—"; }
 
+  // Seletor de loja para vendedor (Super Admin pode trocar)
+  function selectLojaVendedor(u){
+    const opts = LOJAS.map(l=>`<option value="${l.id}" ${u.storeId===l.id?"selected":""}>${l.name||l.code}</option>`).join("");
+    return `<select onchange="trocarLojaVendedor('${u.uid}', this.value)" style="padding:6px 10px;border-radius:8px;border:1px solid rgba(255,255,255,.12);background:rgba(255,255,255,.06);color:#e7eefc;font-size:13px;">
+      <option value="">— sem loja —</option>
+      ${opts}
+    </select>`;
+  }
+
+  window.trocarLojaVendedor = async function(uid, storeId){
+    showLoading("Atualizando loja...");
+    try{
+      const patch = storeId
+        ? { storeId: storeId, storeIds: [storeId] }
+        : { storeId: "", storeIds: [] };
+      await updateDoc(doc(db,"users",uid), patch);
+      const u = USERS.find(x=>x.uid===uid);
+      if(u){ u.storeId = storeId; u.storeIds = storeId?[storeId]:[]; }
+      hideLoading();
+    }catch(e){ console.error(e); alert("Erro ao trocar a loja."); hideLoading(); }
+  };
+
   function renderLojas(){
     const wrap = document.getElementById("tabelaLojas");
     if(LOJAS.length===0){ wrap.innerHTML='<div class="hint">Nenhuma loja criada ainda. Crie a primeira acima.</div>'; return; }
@@ -199,7 +221,7 @@
       return `<tr>
         <td><b>${u.name||"—"}</b><br><span style="font-size:11px;color:#9db0d0">${u.email||""}</span></td>
         <td>${roleTag}</td>
-        <td>${ u.role==="admin" ? `<div class="storesChk">${lojasChk}</div>` : (u.role==="seller" ? nomeLoja(u.storeId) : "—") }</td>
+        <td>${ u.role==="admin" ? `<div class="storesChk">${lojasChk}</div>` : (u.role==="seller" ? selectLojaVendedor(u) : "—") }</td>
         <td>${acoes}</td>
       </tr>`;
     }).join("");
