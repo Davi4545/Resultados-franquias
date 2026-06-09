@@ -1440,7 +1440,11 @@
   // ======================
   const KEY = "nexxt_v3_preference_deactivate_themes";
   const load = () => { try { return JSON.parse(localStorage.getItem(KEY)) || null; } catch { return null; } };
-  const save = (s) => localStorage.setItem(KEY, JSON.stringify(s));
+  const save = (s) => {
+    localStorage.setItem(KEY, JSON.stringify(s));
+    // Sincroniza com o Firebase (definido no modulo abaixo). Nao quebra se ainda nao carregou.
+    try{ if(window.OMNIA_SYNC_SAVE) window.OMNIA_SYNC_SAVE(s); }catch(e){}
+  };
   function uid(){ return Math.random().toString(16).slice(2) + Date.now().toString(16); }
 
   function todayKey(d = new Date()){
@@ -1491,6 +1495,10 @@
   };
 
   let state = load() || defaultState;
+  // Expoe para o modulo Firebase poder ler/escrever o mesmo state
+  window.OMNIA_GET_STATE = () => state;
+  window.OMNIA_SET_STATE = (s) => { state = s; };
+  window.OMNIA_SAVE = (s) => save(s);
 
   // migração defensiva
   state.ui = state.ui || { theme:"default" };
@@ -3758,6 +3766,7 @@
   // UI / NAV
   // ======================
   function renderAll(){
+    window.OMNIA_RENDER = renderAll;
     applyTheme();
     renderHeader();
     renderKpis();
@@ -4302,7 +4311,7 @@
   import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
   import { getAuth, onAuthStateChanged, signOut }
     from "https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js";
-  import { getFirestore, doc, getDoc }
+  import { getFirestore, doc, getDoc, setDoc, onSnapshot }
     from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js";
 
   const firebaseConfig = {
@@ -4350,12 +4359,75 @@
     const btnOut = document.getElementById("btnLogout");
     if(info){
       info.style.display = "inline";
-      info.textContent = (profile.role === "admin" ? "👑 " : "🧑 ") + (profile.name || profile.email);
+      const icon = profile.role==="admin" ? "👑 " : (profile.role==="superadmin" ? "⚡ " : "🧑 ");
+      info.textContent = icon + (profile.name || profile.email);
     }
     if(btnOut) btnOut.style.display = "inline-block";
 
     aplicarPermissoes(profile.role);
+
+    // ===== PARTE 2: dados da loja no Firebase (tempo real) =====
+    await iniciarSyncLoja(profile);
   });
+
+  // Descobre a loja atual do usuario
+  function getStoreIdAtual(profile){
+    if(profile.storeId) return profile.storeId;
+    if(Array.isArray(profile.storeIds) && profile.storeIds.length) return profile.storeIds[0];
+    return null;
+  }
+
+  let OMNIA_STORE_ID = null;
+  let aplicandoRemoto = false; // evita loop de escrita
+
+  async function iniciarSyncLoja(profile){
+    const storeId = getStoreIdAtual(profile);
+    if(!storeId){
+      console.warn("Usuario sem loja vinculada. Usando dados locais.");
+      return;
+    }
+    OMNIA_STORE_ID = storeId;
+    window.OMNIA_STORE_ID = storeId;
+    const ref = doc(db, "stores", storeId, "app", "state");
+
+    // 1. Carrega o state existente da loja (se houver) ANTES de tudo
+    try{
+      const snap = await getDoc(ref);
+      if(snap.exists() && snap.data().json){
+        const remote = JSON.parse(snap.data().json);
+        aplicandoRemoto = true;
+        window.OMNIA_SET_STATE(remote);
+        try{ if(window.OMNIA_RENDER) window.OMNIA_RENDER(); }catch(e){}
+        aplicandoRemoto = false;
+      } else {
+        // primeira vez: sobe o state local atual para a nuvem
+        const atual = window.OMNIA_GET_STATE ? window.OMNIA_GET_STATE() : null;
+        if(atual) await setDoc(ref, { json: JSON.stringify(atual), updatedAt: Date.now() });
+      }
+    }catch(e){ console.error("Erro ao carregar state da loja:", e); }
+
+    // 2. Liga o SAVE para gravar na nuvem
+    window.OMNIA_SYNC_SAVE = function(s){
+      if(aplicandoRemoto) return; // nao reescreve o que acabou de vir da nuvem
+      try{ setDoc(ref, { json: JSON.stringify(s), updatedAt: Date.now() }); }catch(e){ console.error("Erro sync save:", e); }
+    };
+
+    // 3. Tempo real: ouve mudancas de outros PCs
+    onSnapshot(ref, (snap)=>{
+      if(!snap.exists()) return;
+      const data = snap.data();
+      if(!data.json) return;
+      try{
+        const remote = JSON.parse(data.json);
+        const atual = window.OMNIA_GET_STATE ? JSON.stringify(window.OMNIA_GET_STATE()) : "";
+        if(JSON.stringify(remote) === atual) return; // sem mudanca real
+        aplicandoRemoto = true;
+        window.OMNIA_SET_STATE(remote);
+        try{ if(window.OMNIA_RENDER) window.OMNIA_RENDER(); }catch(e){}
+        aplicandoRemoto = false;
+      }catch(e){ console.error("Erro ao aplicar update remoto:", e); }
+    });
+  }
 
   function aplicarPermissoes(role){
     const isAdmin = role === "admin";
