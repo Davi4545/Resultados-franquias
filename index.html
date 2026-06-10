@@ -4876,12 +4876,20 @@
         try{ if(window.OMNIA_RENDER) window.OMNIA_RENDER(); }catch(e){}
         aplicandoRemoto = false;
       } else {
-        // primeira vez: sobe o state local (sem records) para a nuvem
-        const atual = window.OMNIA_GET_STATE ? window.OMNIA_GET_STATE() : null;
-        if(atual){
-          const clone = Object.assign({}, atual); delete clone.records;
-          await setDoc(ref, { json: JSON.stringify(clone), updatedAt: Date.now() });
-        }
+        // Loja NOVA (sem state na nuvem): começa LIMPA, não herda dados de outra loja.
+        const limpo = {
+          store: { name:"Sua loja", status:"Online", logoDataUrl:"" },
+          options: { askValue:true, askPieces:true, vendorDivisor: 0 },
+          ui: { theme: (window.OMNIA_GET_STATE && window.OMNIA_GET_STATE().ui) ? window.OMNIA_GET_STATE().ui.theme : "default" },
+          sellers: [], queue: [], pool: [], currents: [], current: null,
+          records: [], badges: { earned: [] }, goalsByMonth: {}, vendorGoalsByMonth: {}, badgeConfig: {}
+        };
+        aplicandoRemoto = true;
+        window.OMNIA_SET_STATE(limpo);
+        try{ if(window.OMNIA_RENDER) window.OMNIA_RENDER(); }catch(e){}
+        aplicandoRemoto = false;
+        const clone = Object.assign({}, limpo); delete clone.records;
+        await setDoc(ref, { json: JSON.stringify(clone), updatedAt: Date.now() });
       }
     }catch(e){ console.error("Erro ao carregar state da loja:", e); }
 
