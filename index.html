@@ -4711,7 +4711,7 @@
   import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
   import { getAuth, onAuthStateChanged, signOut }
     from "https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js";
-  import { getFirestore, doc, getDoc, setDoc, onSnapshot, collection, deleteDoc }
+  import { getFirestore, doc, getDoc, getDocs, setDoc, onSnapshot, collection, deleteDoc }
     from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js";
 
   const firebaseConfig = {
@@ -4770,11 +4770,81 @@
     try{ if(window.OMNIA_RENDER) window.OMNIA_RENDER(); }catch(e){}
 
     // ===== PARTE 2: dados da loja no Firebase (tempo real) =====
+    await escolherLojaSeNecessario(profile);
     await iniciarSyncLoja(profile);
   });
 
+  // Mostra tela "Selecione sua loja" se o ADM tiver 2+ lojas
+  function escolherLojaSeNecessario(profile){
+    return new Promise(async (resolve)=>{
+      const ids = Array.isArray(profile.storeIds) ? profile.storeIds.filter(Boolean) : (profile.storeId ? [profile.storeId] : []);
+
+      // Só pergunta se tiver mais de uma loja
+      if(ids.length <= 1){
+        profile.__storeAtiva = ids[0] || profile.storeId || null;
+        resolve();
+        return;
+      }
+
+      // Se já escolheu antes nesta sessão, mantém
+      const salva = sessionStorage.getItem("omnia_loja_ativa");
+      if(salva && ids.includes(salva)){
+        profile.__storeAtiva = salva;
+        resolve();
+        return;
+      }
+
+      // Busca os nomes das lojas
+      let lojas = [];
+      try{
+        const snap = await getDocs(collection(db,"stores"));
+        snap.forEach(d=>{ if(ids.includes(d.id)) lojas.push({ id:d.id, ...d.data() }); });
+      }catch(e){ console.error(e); }
+      if(lojas.length===0){ profile.__storeAtiva = ids[0]; resolve(); return; }
+
+      // Monta a tela de seleção
+      const back = document.createElement("div");
+      back.id = "lojaSelectBack";
+      back.style.cssText = "position:fixed;inset:0;background:rgba(8,11,16,.92);z-index:99999;display:flex;align-items:center;justify-content:center;padding:20px;";
+      back.innerHTML = `
+        <div style="background:#0f141c;border:1px solid rgba(255,255,255,.12);border-radius:20px;max-width:460px;width:100%;padding:32px;">
+          <h2 style="font-size:20px;font-weight:900;margin-bottom:6px;color:#e7eefc">Selecione sua loja</h2>
+          <p style="color:#9db0d0;font-size:14px;margin-bottom:20px">Você administra mais de uma loja. Escolha qual deseja acessar agora.</p>
+          <div style="display:flex;flex-direction:column;gap:10px">
+            ${lojas.map(l=>`
+              <button class="lojaOpt" data-id="${l.id}" style="text-align:left;padding:16px;border-radius:12px;border:1px solid rgba(255,255,255,.12);background:rgba(255,255,255,.05);color:#e7eefc;font-size:15px;font-weight:700;cursor:pointer;transition:all .2s">
+                🏬 ${l.name || l.code}
+                <div style="font-size:12px;color:#9db0d0;font-weight:400;margin-top:2px">Código: ${l.code||"—"}</div>
+              </button>`).join("")}
+          </div>
+        </div>`;
+      document.body.appendChild(back);
+
+      back.querySelectorAll(".lojaOpt").forEach(btn=>{
+        btn.addEventListener("mouseenter", ()=> btn.style.background="rgba(98,168,255,.15)");
+        btn.addEventListener("mouseleave", ()=> btn.style.background="rgba(255,255,255,.05)");
+        btn.addEventListener("click", ()=>{
+          const id = btn.dataset.id;
+          profile.__storeAtiva = id;
+          sessionStorage.setItem("omnia_loja_ativa", id);
+          back.remove();
+          resolve();
+        });
+      });
+    });
+  }
+
+  // Botão para trocar de loja (limpa a escolha e recarrega)
+  window.OMNIA_TROCAR_LOJA = function(){
+    sessionStorage.removeItem("omnia_loja_ativa");
+    location.reload();
+  };
+
   // Descobre a loja atual do usuario
   function getStoreIdAtual(profile){
+    if(profile.__storeAtiva) return profile.__storeAtiva;
+    const salva = sessionStorage.getItem("omnia_loja_ativa");
+    if(salva) return salva;
     if(profile.storeId) return profile.storeId;
     if(Array.isArray(profile.storeIds) && profile.storeIds.length) return profile.storeIds[0];
     return null;
@@ -4887,6 +4957,20 @@
     // Botão "Editar selos" no topo — só para admin (já existe no HTML, só mostra)
     const btnSelos = document.getElementById("btnEditSelosFixo");
     if(btnSelos) btnSelos.style.display = isAdmin ? "inline-block" : "none";
+
+    // Botão "Trocar loja" — só para admin com 2+ lojas
+    const idsLojas = Array.isArray(window.OMNIA_USER?.storeIds) ? window.OMNIA_USER.storeIds.filter(Boolean) : [];
+    if(isAdmin && idsLojas.length > 1 && !document.getElementById("btnTrocarLoja")){
+      const ref = document.getElementById("btnSettings");
+      if(ref && ref.parentNode){
+        const b = document.createElement("button");
+        b.className = "btn";
+        b.id = "btnTrocarLoja";
+        b.textContent = "🏬 Trocar loja";
+        b.onclick = ()=>{ if(window.OMNIA_TROCAR_LOJA) window.OMNIA_TROCAR_LOJA(); };
+        ref.parentNode.insertBefore(b, ref);
+      }
+    }
 
     // Vendedor: esconde abas/botões de visão geral da loja
     if(!isAdmin){
