@@ -623,7 +623,8 @@
     .moon{
       position:absolute;
       right: 10px;
-      top: 14px;
+      top: 50%;
+      transform: translateY(-50%);
       width: 92px; height: 92px;
       border-radius: 999px;
       background: radial-gradient(circle at 30% 30%, rgba(255,255,255,.9), rgba(200,210,230,.65) 45%, rgba(150,160,180,.35) 75%);
@@ -639,11 +640,11 @@
       position:absolute;
       left: 12px;
       right: 120px;
-      top: 78px;
-      height: 6px;
+      top: 12px;
+      height: 2px;
       border-radius: 999px;
-      background: rgba(255,255,255,.08);
-      border: 1px solid rgba(255,255,255,.10);
+      background: rgba(255,255,255,.05);
+      display:none;
     }
     .rocket{
       position:absolute;
@@ -2919,6 +2920,13 @@
     const maxRockets = (mode==="store") ? 3 : 5;
     const list = rows.slice(0, maxRockets);
 
+    // Altura dinâmica da pista conforme número de foguetes (evita sobreposição)
+    const espaco = 40;        // distância vertical entre foguetes
+    const topo = 18;          // margem do topo
+    const nLinhas = list.length + (mode==="store" ? 1 : 0);
+    const alturaNecessaria = topo + nLinhas*espaco + 20;
+    race.style.height = Math.max(150, alturaNecessaria) + "px";
+
     list.forEach((r, i)=>{
       const s = getSeller(r.sellerId);
       const sellerTarget = (mode==='seller') ? sellerGoalMonthly(r.sellerId, mk) : target;
@@ -2928,7 +2936,7 @@
       const rocket = document.createElement("div");
       rocket.className = "rocket";
       rocket.style.left = x + "px";
-      rocket.style.top = (22 + i*24) + "px";
+      rocket.style.top = (topo + i*espaco) + "px";
 
       const pic = document.createElement("div");
       pic.className = "pic";
@@ -2959,7 +2967,7 @@
       const rocket = document.createElement("div");
       rocket.className = "rocket";
       rocket.style.left = xStore + "px";
-      rocket.style.top = "110px";
+      rocket.style.top = (topo + list.length*espaco) + "px";
       rocket.style.opacity = "0.95";
 
       const pic = document.createElement("div");
