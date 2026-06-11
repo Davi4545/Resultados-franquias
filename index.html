@@ -2005,6 +2005,16 @@
                 <input id="salePieces_${cid}" inputmode="numeric" placeholder="Ex: 3" />
               </div>
             </div>
+            <div class="row" style="margin-top:6px;padding-top:10px;border-top:1px dashed rgba(255,255,255,.12)">
+              <div class="field" style="min-width:220px">
+                <label>👤 Cliente (opcional — vai pro CRM)</label>
+                <input id="cliNome_${cid}" placeholder="Nome do cliente" />
+              </div>
+              <div class="field" style="min-width:200px">
+                <label>📱 Telefone do cliente</label>
+                <input id="cliTel_${cid}" inputmode="tel" placeholder="(00) 00000-0000" />
+              </div>
+            </div>
           </div>
 
           <div id="nosoldFields_${cid}" style="display:none">
@@ -3453,6 +3463,24 @@
     state.records.push(newRec);
     // Grava a venda como registro SEPARADO no Firebase (robusto, sem conflito)
     try{ if(window.OMNIA_ADD_RECORD) window.OMNIA_ADD_RECORD(newRec); }catch(e){ console.error("add record:",e); }
+
+    // INTEGRAÇÃO CRM: se vendeu e informou cliente, cria/atualiza no CRM da loja
+    if(outcome==="sold"){
+      const cliNome = ($("cliNome_"+cid)?.value || "").trim();
+      const cliTel  = ($("cliTel_"+cid)?.value || "").trim();
+      if(cliNome && cliTel){
+        try{
+          if(window.OMNIA_CRM_UPSERT) window.OMNIA_CRM_UPSERT({
+            nome: cliNome,
+            telefone: cliTel,
+            valorCompra: value,
+            descCompra: pieces>0 ? (pieces+" peça(s)") : "Compra",
+            sellerId: sid,
+            sellerNome: s?.name || ""
+          });
+        }catch(e){ console.error("CRM upsert:", e); }
+      }
+    }
 
     try{ evaluateSellerBadgesAfterRecord(newRec); }catch(e){}
 
@@ -4966,6 +4994,53 @@
       snap.forEach(d=> arr.push(d.data()));
       if(window.OMNIA_SET_RECORDS) window.OMNIA_SET_RECORDS(arr);
     });
+
+    // ===== INTEGRAÇÃO CRM =====
+    const clientesRef = collection(db, "stores", storeId, "clientes");
+    // Cria ou atualiza um cliente no CRM da loja a partir de uma venda
+    window.OMNIA_CRM_UPSERT = async function(info){
+      try{
+        if(!info || !info.nome || !info.telefone) return;
+        const telLimpo = (info.telefone||"").replace(/\D/g,"");
+        // procura cliente existente pelo telefone (evita duplicar)
+        const snap = await getDocs(clientesRef);
+        let existente = null;
+        snap.forEach(d=>{ const c=d.data(); if((c.telefone||"").replace(/\D/g,"")===telLimpo && telLimpo) existente={ id:d.id, ...c }; });
+
+        const nowIso = new Date().toISOString();
+        const novaCompra = (Number(info.valorCompra)||0) > 0
+          ? { valor: Number(info.valorCompra)||0, desc: info.descCompra||"Compra", ts: Date.now() }
+          : null;
+        const novaInter = { tipo:"🛒 Venda", texto:"Compra registrada via OMNIA"+(novaCompra?(" — "+novaCompra.desc):""), quem: info.sellerNome||"OMNIA", ts: Date.now() };
+
+        if(existente){
+          const compras = [...(existente.compras||[])];
+          if(novaCompra) compras.push(novaCompra);
+          const interacoes = [...(existente.interacoes||[]), novaInter];
+          await setDoc(doc(clientesRef, existente.id), {
+            ...existente,
+            nome: existente.nome || info.nome,
+            telefone: info.telefone,
+            etapa: "fechado",
+            compras, interacoes,
+            atualizadoEm: nowIso
+          });
+        } else {
+          const id = "cli_"+Date.now()+"_"+Math.random().toString(36).slice(2,7);
+          await setDoc(doc(clientesRef, id), {
+            id, nome: info.nome, telefone: info.telefone,
+            email:"", cpf:"", nascimento:"", obs:"", tags:[],
+            etapa: "fechado",
+            proximoContato:"",
+            compras: novaCompra ? [novaCompra] : [],
+            interacoes: [novaInter],
+            ownerUid: (window.OMNIA_USER && window.OMNIA_USER.uid) || "",
+            ownerNome: info.sellerNome || (window.OMNIA_USER && window.OMNIA_USER.name) || "",
+            criadoEm: nowIso, atualizadoEm: nowIso
+          });
+        }
+      }catch(e){ console.error("OMNIA_CRM_UPSERT:", e); }
+    };
   }
 
   function aplicarPermissoes(role){
