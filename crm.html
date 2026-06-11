@@ -25,11 +25,13 @@
   .btn.good{background:rgba(41,224,122,.14);border-color:rgba(41,224,122,.3);color:#7fffc0;}
   .btn.bad{background:rgba(255,77,77,.12);border-color:rgba(255,77,77,.3);color:#ff9090;}
   .btn.warn{background:rgba(255,209,102,.12);border-color:rgba(255,209,102,.28);color:#ffd166;}
+  .btn.wa{background:rgba(37,211,102,.16);border-color:rgba(37,211,102,.4);color:#5bf0a0;}
   .btn.sm{padding:5px 10px;font-size:12px;}
   table{width:100%;border-collapse:collapse;font-size:13px;}
   th{text-align:left;padding:8px 10px;color:#9db0d0;font-weight:700;font-size:11px;text-transform:uppercase;letter-spacing:.05em;border-bottom:1px solid rgba(255,255,255,.08);}
   td{padding:10px;border-bottom:1px solid rgba(255,255,255,.05);vertical-align:middle;}
   tr:hover td{background:rgba(255,255,255,.03);}
+  .clickRow{cursor:pointer;}
   .field{display:flex;flex-direction:column;gap:6px;margin-bottom:12px;}
   .field label{font-size:11px;color:#9db0d0;text-transform:uppercase;letter-spacing:.05em;font-weight:700;}
   .field input,.field select,.field textarea{padding:10px 12px;border-radius:10px;border:1px solid rgba(255,255,255,.12);background:rgba(255,255,255,.06);color:#e7eefc;font-size:14px;outline:none;font-family:inherit;}
@@ -37,28 +39,37 @@
   .grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
   .hint{font-size:13px;color:#9db0d0;padding:16px 0;text-align:center;}
   .tag{display:inline-flex;align-items:center;padding:3px 9px;border-radius:999px;font-size:11px;font-weight:700;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.12);}
+  .tag.vip{background:rgba(255,209,102,.16);border-color:rgba(255,209,102,.35);color:#ffd166;}
+  .tag.novo{background:rgba(98,168,255,.16);border-color:rgba(98,168,255,.35);color:#a0c8ff;}
+  .tag.inativo{background:rgba(255,77,77,.12);border-color:rgba(255,77,77,.3);color:#ff9090;}
+  .tag.fiel{background:rgba(41,224,122,.14);border-color:rgba(41,224,122,.3);color:#7fffc0;}
   .kpis{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px;margin-bottom:18px;}
   .kpi{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:14px;padding:14px;}
   .kpi .t{font-size:11px;color:#9db0d0;text-transform:uppercase;margin-bottom:4px;}
   .kpi .v{font-size:22px;font-weight:900;}
-  /* Funil */
   .funil{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;}
-  .col{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:14px;padding:14px;min-height:200px;}
+  .col{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:14px;padding:14px;min-height:300px;transition:background .15s;}
+  .col.dragover{background:rgba(98,168,255,.10);border-color:rgba(98,168,255,.4);}
   .col h3{font-size:13px;text-transform:uppercase;letter-spacing:.05em;margin-bottom:12px;display:flex;justify-content:space-between;}
-  .leadCard{background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);border-radius:10px;padding:10px;margin-bottom:8px;font-size:13px;}
+  .leadCard{background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);border-radius:10px;padding:10px;margin-bottom:8px;font-size:13px;cursor:grab;}
+  .leadCard:active{cursor:grabbing;}
+  .leadCard.dragging{opacity:.4;}
   .leadCard .nm{font-weight:700;margin-bottom:3px;}
   .leadCard .meta{font-size:11px;color:#9db0d0;}
-  .leadCard .acts{display:flex;gap:5px;margin-top:8px;flex-wrap:wrap;}
-  /* Modal */
   .modalBack{display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:9999;align-items:flex-start;justify-content:center;overflow:auto;padding:30px 16px;}
   .modalBack.show{display:flex;}
-  .modal{background:#0f141c;border:1px solid rgba(255,255,255,.12);border-radius:18px;max-width:560px;width:100%;padding:24px;}
+  .modal{background:#0f141c;border:1px solid rgba(255,255,255,.12);border-radius:18px;max-width:600px;width:100%;padding:24px;}
   .loading{display:none;position:fixed;inset:0;background:rgba(11,15,20,.85);place-items:center;z-index:99999;font-size:16px;color:#e7eefc;gap:10px;flex-direction:column;}
   .loading.show{display:flex;}
   .spinner{width:32px;height:32px;border:3px solid rgba(255,255,255,.12);border-top-color:#62a8ff;border-radius:50%;animation:spin .7s linear infinite;}
   @keyframes spin{to{transform:rotate(360deg)}}
   select option{background:#1a1f2b;color:#e7eefc;}
-  @media(max-width:720px){ .grid2{grid-template-columns:1fr;} .funil{grid-template-columns:1fr;} }
+  .tagPicker{display:flex;gap:6px;flex-wrap:wrap;}
+  .tagPicker label{display:inline-flex;align-items:center;gap:4px;font-size:12px;background:rgba(255,255,255,.05);padding:4px 9px;border-radius:8px;border:1px solid rgba(255,255,255,.1);cursor:pointer;}
+  .interItem{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:10px;padding:10px;margin-bottom:8px;font-size:13px;}
+  .interItem .quando{font-size:11px;color:#9db0d0;}
+  .fichaCol{display:grid;grid-template-columns:1fr 1fr;gap:18px;}
+  @media(max-width:720px){ .grid2{grid-template-columns:1fr;} .funil{grid-template-columns:1fr;} .fichaCol{grid-template-columns:1fr;} }
 </style>
 </head>
 <body>
@@ -84,14 +95,13 @@
     <button class="tab" id="tabLembretes" onclick="showTab('lembretes')">🔔 Lembretes</button>
   </div>
 
-  <!-- CLIENTES -->
   <div id="viewClientes">
     <div class="kpis" id="clientesKpis"></div>
     <div class="card">
       <div class="cardHead">
         <h2>👥 Clientes</h2>
         <div style="display:flex;gap:8px;flex-wrap:wrap">
-          <input id="buscaCliente" placeholder="Buscar por nome/telefone..." style="padding:8px 12px;border-radius:10px;border:1px solid rgba(255,255,255,.12);background:rgba(255,255,255,.06);color:#e7eefc;font-size:13px;" oninput="renderClientes()"/>
+          <input id="buscaCliente" placeholder="Buscar nome/telefone..." style="padding:8px 12px;border-radius:10px;border:1px solid rgba(255,255,255,.12);background:rgba(255,255,255,.06);color:#e7eefc;font-size:13px;" oninput="renderClientes()"/>
           <button class="btn good" onclick="abrirNovoCliente()">+ Novo cliente</button>
         </div>
       </div>
@@ -99,32 +109,30 @@
     </div>
   </div>
 
-  <!-- FUNIL -->
   <div id="viewFunil" style="display:none">
     <div class="card">
-      <div class="cardHead"><h2>📊 Funil de vendas</h2></div>
+      <div class="cardHead"><h2>📊 Funil de vendas</h2><span class="hint" style="padding:0">Arraste os cards entre as colunas</span></div>
       <div class="funil">
-        <div class="col"><h3>🔵 Lead <span id="cntLead" class="tag">0</span></h3><div id="colLead"></div></div>
-        <div class="col"><h3>🟡 Negociação <span id="cntNeg" class="tag">0</span></h3><div id="colNeg"></div></div>
-        <div class="col"><h3>🟢 Fechado <span id="cntFec" class="tag">0</span></h3><div id="colFec"></div></div>
+        <div class="col" data-etapa="lead" ondragover="permitirDrop(event)" ondrop="soltarCard(event,'lead')" ondragleave="sairDrop(event)"><h3>🔵 Lead <span id="cntLead" class="tag">0</span></h3><div id="colLead"></div></div>
+        <div class="col" data-etapa="negociacao" ondragover="permitirDrop(event)" ondrop="soltarCard(event,'negociacao')" ondragleave="sairDrop(event)"><h3>🟡 Negociação <span id="cntNeg" class="tag">0</span></h3><div id="colNeg"></div></div>
+        <div class="col" data-etapa="fechado" ondragover="permitirDrop(event)" ondrop="soltarCard(event,'fechado')" ondragleave="sairDrop(event)"><h3>🟢 Fechado <span id="cntFec" class="tag">0</span></h3><div id="colFec"></div></div>
       </div>
     </div>
   </div>
 
-  <!-- LEMBRETES -->
   <div id="viewLembretes" style="display:none">
     <div class="card">
       <div class="cardHead"><h2>🎂 Aniversariantes do mês</h2></div>
       <div id="aniversariantes"><div class="hint">Carregando...</div></div>
     </div>
     <div class="card">
-      <div class="cardHead"><h2>📞 Pós-venda (clientes sem contato há 30+ dias)</h2></div>
+      <div class="cardHead"><h2>📞 Pós-venda (fechados há 30+ dias)</h2></div>
       <div id="posVenda"><div class="hint">Carregando...</div></div>
     </div>
   </div>
 </div>
 
-<!-- MODAL CLIENTE -->
+<!-- MODAL EDITAR/NOVO -->
 <div class="modalBack" id="modalCliente">
   <div class="modal">
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:18px">
@@ -143,17 +151,57 @@
     <div class="grid2">
       <div class="field"><label>Aniversário</label><input id="cliNasc" type="date"/></div>
       <div class="field"><label>Etapa no funil</label>
-        <select id="cliEtapa">
-          <option value="lead">🔵 Lead</option>
-          <option value="negociacao">🟡 Negociação</option>
-          <option value="fechado">🟢 Fechado</option>
-        </select>
+        <select id="cliEtapa"><option value="lead">🔵 Lead</option><option value="negociacao">🟡 Negociação</option><option value="fechado">🟢 Fechado</option></select>
       </div>
     </div>
-    <div class="field"><label>Observações</label><textarea id="cliObs" rows="2" placeholder="Anotações sobre o cliente..."></textarea></div>
+    <div class="field"><label>Tags</label>
+      <div class="tagPicker">
+        <label><input type="checkbox" class="tagChk" value="vip"/> ⭐ VIP</label>
+        <label><input type="checkbox" class="tagChk" value="novo"/> 🆕 Novo</label>
+        <label><input type="checkbox" class="tagChk" value="fiel"/> 💚 Fiel</label>
+        <label><input type="checkbox" class="tagChk" value="inativo"/> 💤 Inativo</label>
+      </div>
+    </div>
+    <div class="field"><label>Observações</label><textarea id="cliObs" rows="2" placeholder="Anotações..."></textarea></div>
     <div style="display:flex;gap:10px;justify-content:flex-end;margin-top:10px">
       <button class="btn" onclick="fecharModal()">Cancelar</button>
       <button class="btn good" onclick="salvarCliente()">Salvar</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL FICHA -->
+<div class="modalBack" id="modalFicha">
+  <div class="modal" style="max-width:680px">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
+      <h2 id="fichaNome" style="font-size:20px;font-weight:900">—</h2>
+      <button class="btn" onclick="fecharFicha()">✕</button>
+    </div>
+    <div id="fichaTags" style="margin-bottom:16px"></div>
+    <div class="fichaCol">
+      <div>
+        <h3 class="hint" style="text-align:left;padding:4px 0;font-weight:700">DADOS</h3>
+        <div id="fichaDados" style="font-size:14px;line-height:1.9"></div>
+        <div style="display:flex;gap:8px;margin-top:14px;flex-wrap:wrap">
+          <button class="btn wa" id="fichaWhats">💬 WhatsApp</button>
+          <button class="btn warn" id="fichaEditar">✏️ Editar</button>
+        </div>
+      </div>
+      <div>
+        <h3 class="hint" style="text-align:left;padding:4px 0;font-weight:700">HISTÓRICO DE INTERAÇÕES</h3>
+        <div style="display:flex;gap:6px;margin-bottom:10px">
+          <select id="interTipo" style="flex:0 0 auto;padding:8px;border-radius:8px;border:1px solid rgba(255,255,255,.12);background:rgba(255,255,255,.06);color:#e7eefc;font-size:13px">
+            <option value="📞 Ligação">📞 Ligação</option>
+            <option value="💬 WhatsApp">💬 WhatsApp</option>
+            <option value="📧 E-mail">📧 E-mail</option>
+            <option value="🏬 Visita">🏬 Visita</option>
+            <option value="📝 Nota">📝 Nota</option>
+          </select>
+          <input id="interTexto" placeholder="O que rolou?" style="flex:1;padding:8px;border-radius:8px;border:1px solid rgba(255,255,255,.12);background:rgba(255,255,255,.06);color:#e7eefc;font-size:13px"/>
+          <button class="btn good sm" onclick="addInteracao()">+</button>
+        </div>
+        <div id="fichaInteracoes" style="max-height:280px;overflow:auto"></div>
+      </div>
     </div>
   </div>
 </div>
@@ -179,223 +227,243 @@
   const auth = getAuth(app);
   const db = getFirestore(app);
 
-  let MY = null;          // perfil
-  let STORE_ID = null;    // loja ativa
-  let CLIENTES = [];      // clientes carregados
-  let clientesRef = null;
+  let MY=null, STORE_ID=null, CLIENTES=[], clientesRef=null, fichaAtualId=null;
 
   function showLoading(m){ document.getElementById("loadingScreen").classList.add("show"); document.getElementById("loadingMsg").textContent=m||"Carregando..."; }
   function hideLoading(){ document.getElementById("loadingScreen").classList.remove("show"); }
 
   onAuthStateChanged(auth, async (user)=>{
     if(!user){ window.location.href="./login.html"; return; }
-    const ehSuper = (user.email||"").toLowerCase()===SUPER_ADMIN_EMAIL;
-    if(!ehSuper && !user.emailVerified){
-      alert("Verifique seu e-mail antes de acessar."); await signOut(auth); window.location.href="./login.html"; return;
-    }
-
-    let prof = { role:"seller", name:user.email, email:user.email };
+    let prof={ role:"seller", name:user.email, email:user.email };
     try{ const s=await getDoc(doc(db,"users",user.uid)); if(s.exists()) prof={...prof, ...s.data()}; }catch(e){}
-    if(ehSuper) prof.role = "superadmin";
-    MY = { uid:user.uid, ...prof };
-
-    // loja ativa (mesma lógica do OMNIA)
+    if((user.email||"").toLowerCase()===SUPER_ADMIN_EMAIL) prof.role="superadmin";
+    MY={ uid:user.uid, ...prof };
     STORE_ID = sessionStorage.getItem("omnia_loja_ativa") || prof.storeId || (Array.isArray(prof.storeIds)&&prof.storeIds[0]) || null;
 
     if(!STORE_ID){
       hideLoading();
-      document.getElementById("tabelaClientes").innerHTML='<div class="hint">Nenhuma loja vinculada à sua conta. Acesse o OMNIA primeiro e selecione a loja.</div>';
-      document.getElementById("roleChip").textContent = prof.role;
-      return;
+      document.getElementById("tabelaClientes").innerHTML='<div class="hint">Nenhuma loja vinculada. Acesse o OMNIA e selecione a loja primeiro.</div>';
+      document.getElementById("roleChip").textContent=prof.role; return;
     }
-
-    // contexto no header
-    let lojaNome = STORE_ID;
+    let lojaNome=STORE_ID;
     try{ const ls=await getDoc(doc(db,"stores",STORE_ID)); if(ls.exists()) lojaNome=ls.data().name||ls.data().code||STORE_ID; }catch(e){}
-    document.getElementById("ctxInfo").textContent = "Loja: "+lojaNome+" · "+(prof.name||prof.email);
-    document.getElementById("roleChip").textContent = prof.role==="admin"?"👑 Admin":(prof.role==="superadmin"?"⚡ Super":"🧑 Vendedor");
+    document.getElementById("ctxInfo").textContent="Loja: "+lojaNome+" · "+(prof.name||prof.email);
+    document.getElementById("roleChip").textContent=prof.role==="admin"?"👑 Admin":(prof.role==="superadmin"?"⚡ Super":"🧑 Vendedor");
 
-    // escuta clientes da loja em tempo real
-    clientesRef = collection(db, "stores", STORE_ID, "clientes");
-    onSnapshot(clientesRef, (snap)=>{
-      CLIENTES = []; snap.forEach(d=> CLIENTES.push({ id:d.id, ...d.data() }));
+    clientesRef = collection(db,"stores",STORE_ID,"clientes");
+    onSnapshot(clientesRef,(snap)=>{
+      CLIENTES=[]; snap.forEach(d=> CLIENTES.push({ id:d.id, ...d.data() }));
       renderTudo();
+      if(fichaAtualId) atualizarFichaAberta();
       hideLoading();
-    }, (err)=>{ console.error(err); hideLoading(); document.getElementById("tabelaClientes").innerHTML='<div class="hint">Erro ao carregar. Verifique as regras do Firestore.</div>'; });
+    },(err)=>{ console.error(err); hideLoading(); document.getElementById("tabelaClientes").innerHTML='<div class="hint">Erro ao carregar. Verifique as regras do Firestore.</div>'; });
   });
 
-  window.sair = async function(){ await signOut(auth); window.location.href="./login.html"; };
+  window.sair=async function(){ await signOut(auth); window.location.href="./login.html"; };
 
-  // Escopo: admin/super vê todos; vendedor vê os dele (campo ownerUid)
   function clientesVisiveis(){
     if(MY.role==="admin"||MY.role==="superadmin") return CLIENTES;
     return CLIENTES.filter(c=> c.ownerUid===MY.uid);
   }
 
-  window.showTab = function(t){
+  window.showTab=function(t){
     ["clientes","funil","lembretes"].forEach(x=>{
-      document.getElementById("view"+x.charAt(0).toUpperCase()+x.slice(1)).style.display = (x===t)?"block":"none";
-      document.getElementById("tab"+x.charAt(0).toUpperCase()+x.slice(1)).classList.toggle("active", x===t);
+      document.getElementById("view"+x.charAt(0).toUpperCase()+x.slice(1)).style.display=(x===t)?"block":"none";
+      document.getElementById("tab"+x.charAt(0).toUpperCase()+x.slice(1)).classList.toggle("active",x===t);
     });
   };
 
   function renderTudo(){ renderClientes(); renderFunil(); renderLembretes(); }
 
+  const TAG_LABEL = { vip:'⭐ VIP', novo:'🆕 Novo', fiel:'💚 Fiel', inativo:'💤 Inativo' };
+  function tagsHtml(tags){ return (tags||[]).map(t=>`<span class="tag ${t}">${TAG_LABEL[t]||t}</span>`).join(" "); }
+
+  // limpa telefone para link do whatsapp
+  function zap(tel){ const n=(tel||"").replace(/\D/g,""); return n.length>=10 ? ("55"+n) : n; }
+
   // ===== CLIENTES =====
-  window.renderClientes = function(){
-    const lista = clientesVisiveis();
-    const busca = (document.getElementById("buscaCliente").value||"").toLowerCase();
-    const filtrados = lista.filter(c=> !busca || (c.nome||"").toLowerCase().includes(busca) || (c.telefone||"").includes(busca));
-
-    document.getElementById("clientesKpis").innerHTML = `
-      <div class="kpi"><div class="t">Total de clientes</div><div class="v">${lista.length}</div></div>
+  window.renderClientes=function(){
+    const lista=clientesVisiveis();
+    const busca=(document.getElementById("buscaCliente").value||"").toLowerCase();
+    const filtrados=lista.filter(c=> !busca || (c.nome||"").toLowerCase().includes(busca) || (c.telefone||"").includes(busca));
+    document.getElementById("clientesKpis").innerHTML=`
+      <div class="kpi"><div class="t">Total</div><div class="v">${lista.length}</div></div>
       <div class="kpi"><div class="t">Leads</div><div class="v">${lista.filter(c=>c.etapa==="lead").length}</div></div>
-      <div class="kpi"><div class="t">Em negociação</div><div class="v">${lista.filter(c=>c.etapa==="negociacao").length}</div></div>
+      <div class="kpi"><div class="t">Negociação</div><div class="v">${lista.filter(c=>c.etapa==="negociacao").length}</div></div>
       <div class="kpi"><div class="t">Fechados</div><div class="v">${lista.filter(c=>c.etapa==="fechado").length}</div></div>`;
-
-    if(filtrados.length===0){ document.getElementById("tabelaClientes").innerHTML='<div class="hint">Nenhum cliente ainda. Clique em "+ Novo cliente".</div>'; return; }
-
-    const etapaTag = { lead:'🔵 Lead', negociacao:'🟡 Negociação', fechado:'🟢 Fechado' };
-    const rows = filtrados.sort((a,b)=>(a.nome||"").localeCompare(b.nome||"")).map(c=>`
-      <tr>
-        <td><b>${c.nome||"—"}</b></td>
+    if(filtrados.length===0){ document.getElementById("tabelaClientes").innerHTML='<div class="hint">Nenhum cliente. Clique em "+ Novo cliente".</div>'; return; }
+    const etapaTag={ lead:'🔵 Lead', negociacao:'🟡 Negociação', fechado:'🟢 Fechado' };
+    const rows=filtrados.sort((a,b)=>(a.nome||"").localeCompare(b.nome||"")).map(c=>`
+      <tr class="clickRow" onclick="abrirFicha('${c.id}')">
+        <td><b>${c.nome||"—"}</b> ${tagsHtml(c.tags)}</td>
         <td>${c.telefone||"—"}</td>
-        <td>${c.email||"—"}</td>
-        <td><span class="tag">${etapaTag[c.etapa]||c.etapa||"—"}</span></td>
-        <td style="display:flex;gap:6px;flex-wrap:wrap">
-          <button class="btn sm" onclick="abrirEditarCliente('${c.id}')">Editar</button>
-          <button class="btn sm bad" onclick="excluirCliente('${c.id}','${(c.nome||"").replace(/'/g,"")}')">Excluir</button>
+        <td><span class="tag">${etapaTag[c.etapa]||"—"}</span></td>
+        <td onclick="event.stopPropagation()">
+          <button class="btn wa sm" onclick="abrirWhats('${zap(c.telefone)}')">💬</button>
         </td>
       </tr>`).join("");
-    document.getElementById("tabelaClientes").innerHTML = `<table><thead><tr><th>Nome</th><th>Telefone</th><th>E-mail</th><th>Etapa</th><th>Ações</th></tr></thead><tbody>${rows}</tbody></table>`;
+    document.getElementById("tabelaClientes").innerHTML=`<table><thead><tr><th>Nome</th><th>Telefone</th><th>Etapa</th><th>Zap</th></tr></thead><tbody>${rows}</tbody></table>`;
   };
 
-  window.abrirNovoCliente = function(){
-    document.getElementById("modalTitulo").textContent = "Novo cliente";
-    document.getElementById("cliId").value = "";
-    ["cliNome","cliTel","cliEmail","cliCpf","cliNasc","cliObs"].forEach(id=> document.getElementById(id).value="");
-    document.getElementById("cliEtapa").value = "lead";
+  window.abrirWhats=function(num){ if(!num){ alert("Cliente sem telefone válido."); return; } window.open("https://wa.me/"+num,"_blank"); };
+
+  window.abrirNovoCliente=function(){
+    document.getElementById("modalTitulo").textContent="Novo cliente";
+    document.getElementById("cliId").value="";
+    ["cliNome","cliTel","cliEmail","cliCpf","cliNasc","cliObs"].forEach(id=>document.getElementById(id).value="");
+    document.getElementById("cliEtapa").value="lead";
+    document.querySelectorAll(".tagChk").forEach(ch=>ch.checked=false);
     document.getElementById("modalCliente").classList.add("show");
   };
 
-  window.abrirEditarCliente = function(id){
-    const c = CLIENTES.find(x=>x.id===id); if(!c) return;
-    document.getElementById("modalTitulo").textContent = "Editar cliente";
-    document.getElementById("cliId").value = c.id;
-    document.getElementById("cliNome").value = c.nome||"";
-    document.getElementById("cliTel").value = c.telefone||"";
-    document.getElementById("cliEmail").value = c.email||"";
-    document.getElementById("cliCpf").value = c.cpf||"";
-    document.getElementById("cliNasc").value = c.nascimento||"";
-    document.getElementById("cliEtapa").value = c.etapa||"lead";
-    document.getElementById("cliObs").value = c.obs||"";
+  window.abrirEditarCliente=function(id){
+    const c=CLIENTES.find(x=>x.id===id); if(!c) return;
+    document.getElementById("modalTitulo").textContent="Editar cliente";
+    document.getElementById("cliId").value=c.id;
+    document.getElementById("cliNome").value=c.nome||"";
+    document.getElementById("cliTel").value=c.telefone||"";
+    document.getElementById("cliEmail").value=c.email||"";
+    document.getElementById("cliCpf").value=c.cpf||"";
+    document.getElementById("cliNasc").value=c.nascimento||"";
+    document.getElementById("cliEtapa").value=c.etapa||"lead";
+    document.getElementById("cliObs").value=c.obs||"";
+    document.querySelectorAll(".tagChk").forEach(ch=> ch.checked=(c.tags||[]).includes(ch.value));
     document.getElementById("modalCliente").classList.add("show");
   };
 
-  window.fecharModal = function(){ document.getElementById("modalCliente").classList.remove("show"); };
+  window.fecharModal=function(){ document.getElementById("modalCliente").classList.remove("show"); };
 
-  window.salvarCliente = async function(){
-    const nome = document.getElementById("cliNome").value.trim();
-    const tel  = document.getElementById("cliTel").value.trim();
-    if(!nome){ alert("Digite o nome do cliente."); return; }
+  window.salvarCliente=async function(){
+    const nome=document.getElementById("cliNome").value.trim();
+    const tel=document.getElementById("cliTel").value.trim();
+    if(!nome){ alert("Digite o nome."); return; }
     if(!tel){ alert("Digite o telefone."); return; }
-
-    const id = document.getElementById("cliId").value || ("cli_"+Date.now()+"_"+Math.random().toString(36).slice(2,7));
-    const existente = CLIENTES.find(x=>x.id===id);
-
-    const dados = {
-      id,
-      nome, telefone: tel,
-      email: document.getElementById("cliEmail").value.trim(),
-      cpf: document.getElementById("cliCpf").value.trim(),
-      nascimento: document.getElementById("cliNasc").value,
-      etapa: document.getElementById("cliEtapa").value,
-      obs: document.getElementById("cliObs").value.trim(),
+    const id=document.getElementById("cliId").value || ("cli_"+Date.now()+"_"+Math.random().toString(36).slice(2,7));
+    const existente=CLIENTES.find(x=>x.id===id);
+    const tags=Array.from(document.querySelectorAll(".tagChk")).filter(c=>c.checked).map(c=>c.value);
+    const dados={
+      id, nome, telefone:tel,
+      email:document.getElementById("cliEmail").value.trim(),
+      cpf:document.getElementById("cliCpf").value.trim(),
+      nascimento:document.getElementById("cliNasc").value,
+      etapa:document.getElementById("cliEtapa").value,
+      obs:document.getElementById("cliObs").value.trim(),
+      tags,
+      interacoes: existente?.interacoes || [],
       ownerUid: existente?.ownerUid || MY.uid,
       ownerNome: existente?.ownerNome || MY.name || MY.email,
       criadoEm: existente?.criadoEm || new Date().toISOString(),
       atualizadoEm: new Date().toISOString()
     };
-
     showLoading("Salvando...");
-    try{
-      await setDoc(doc(clientesRef, id), dados);
-      fecharModal();
-    }catch(e){ console.error(e); alert("Erro ao salvar cliente."); }
+    try{ await setDoc(doc(clientesRef,id),dados); fecharModal(); }
+    catch(e){ console.error(e); alert("Erro ao salvar."); }
     hideLoading();
   };
 
-  window.excluirCliente = async function(id, nome){
-    if(!confirm(`Excluir o cliente "${nome}"? Esta ação não pode ser desfeita.`)) return;
+  window.excluirCliente=async function(id,nome){
+    if(!confirm(`Excluir "${nome}"? Esta ação não pode ser desfeita.`)) return;
     showLoading("Excluindo...");
-    try{ await deleteDoc(doc(clientesRef, id)); }catch(e){ console.error(e); alert("Erro ao excluir."); }
+    try{ await deleteDoc(doc(clientesRef,id)); fecharFicha(); }catch(e){ console.error(e); alert("Erro."); }
     hideLoading();
   };
 
-  // ===== FUNIL =====
-  function renderFunil(){
-    const lista = clientesVisiveis();
-    const cols = { lead:[], negociacao:[], fechado:[] };
-    lista.forEach(c=> (cols[c.etapa]||cols.lead).push(c));
+  // ===== FICHA =====
+  window.abrirFicha=function(id){
+    fichaAtualId=id;
+    renderFicha();
+    document.getElementById("modalFicha").classList.add("show");
+  };
+  window.fecharFicha=function(){ fichaAtualId=null; document.getElementById("modalFicha").classList.remove("show"); };
+  function atualizarFichaAberta(){ if(fichaAtualId && document.getElementById("modalFicha").classList.contains("show")) renderFicha(); }
 
-    document.getElementById("cntLead").textContent = cols.lead.length;
-    document.getElementById("cntNeg").textContent = cols.negociacao.length;
-    document.getElementById("cntFec").textContent = cols.fechado.length;
+  function renderFicha(){
+    const c=CLIENTES.find(x=>x.id===fichaAtualId); if(!c){ fecharFicha(); return; }
+    document.getElementById("fichaNome").textContent=c.nome||"—";
+    document.getElementById("fichaTags").innerHTML=tagsHtml(c.tags) || '<span class="hint" style="padding:0">Sem tags</span>';
+    const etapaTxt={ lead:'🔵 Lead', negociacao:'🟡 Negociação', fechado:'🟢 Fechado' }[c.etapa]||"—";
+    document.getElementById("fichaDados").innerHTML=`
+      📱 <b>${c.telefone||"—"}</b><br>
+      📧 ${c.email||"—"}<br>
+      🪪 ${c.cpf||"—"}<br>
+      🎂 ${c.nascimento? c.nascimento.split("-").reverse().join("/") : "—"}<br>
+      📊 ${etapaTxt}<br>
+      👤 Responsável: ${c.ownerNome||"—"}<br>
+      ${c.obs? "📝 "+c.obs : ""}`;
+    document.getElementById("fichaWhats").onclick=()=> abrirWhats(zap(c.telefone));
+    document.getElementById("fichaEditar").onclick=()=>{ fecharFicha(); abrirEditarCliente(c.id); };
 
-    const card = (c, prox, proxLabel, volta, voltaLabel)=>`
-      <div class="leadCard">
-        <div class="nm">${c.nome||"—"}</div>
-        <div class="meta">${c.telefone||""}${c.email?" · "+c.email:""}</div>
-        <div class="acts">
-          ${volta?`<button class="btn sm" onclick="moverEtapa('${c.id}','${volta}')">← ${voltaLabel}</button>`:""}
-          ${prox?`<button class="btn sm good" onclick="moverEtapa('${c.id}','${prox}')">${proxLabel} →</button>`:""}
-        </div>
-      </div>`;
-
-    document.getElementById("colLead").innerHTML = cols.lead.map(c=>card(c,'negociacao','Negociação',null,null)).join("") || '<div class="hint">Vazio</div>';
-    document.getElementById("colNeg").innerHTML = cols.negociacao.map(c=>card(c,'fechado','Fechar','lead','Lead')).join("") || '<div class="hint">Vazio</div>';
-    document.getElementById("colFec").innerHTML = cols.fechado.map(c=>card(c,null,null,'negociacao','Negociação')).join("") || '<div class="hint">Vazio</div>';
+    const inter=(c.interacoes||[]).slice().sort((a,b)=>(b.ts||0)-(a.ts||0));
+    document.getElementById("fichaInteracoes").innerHTML = inter.length? inter.map(i=>`
+      <div class="interItem">
+        <div>${i.tipo||""} ${i.texto||""}</div>
+        <div class="quando">${i.quem||""} · ${i.ts? new Date(i.ts).toLocaleString("pt-BR"):""}</div>
+      </div>`).join("") : '<div class="hint">Nenhuma interação registrada.</div>';
   }
 
-  window.moverEtapa = async function(id, etapa){
-    const c = CLIENTES.find(x=>x.id===id); if(!c) return;
-    showLoading("Atualizando...");
-    try{ await setDoc(doc(clientesRef, id), { ...c, etapa, atualizadoEm:new Date().toISOString() }); }catch(e){ console.error(e); }
+  window.addInteracao=async function(){
+    const c=CLIENTES.find(x=>x.id===fichaAtualId); if(!c) return;
+    const tipo=document.getElementById("interTipo").value;
+    const texto=document.getElementById("interTexto").value.trim();
+    if(!texto){ alert("Escreva o que aconteceu."); return; }
+    const nova={ tipo, texto, quem:MY.name||MY.email, ts:Date.now() };
+    const interacoes=[...(c.interacoes||[]), nova];
+    showLoading("Salvando...");
+    try{
+      await setDoc(doc(clientesRef,c.id),{ ...c, interacoes, atualizadoEm:new Date().toISOString() });
+      document.getElementById("interTexto").value="";
+    }catch(e){ console.error(e); alert("Erro ao registrar."); }
     hideLoading();
   };
+
+  // ===== FUNIL (drag & drop) =====
+  let dragId=null;
+  window.permitirDrop=function(ev){ ev.preventDefault(); ev.currentTarget.classList.add("dragover"); };
+  window.sairDrop=function(ev){ ev.currentTarget.classList.remove("dragover"); };
+  window.soltarCard=async function(ev,etapa){
+    ev.preventDefault();
+    ev.currentTarget.classList.remove("dragover");
+    if(!dragId) return;
+    const c=CLIENTES.find(x=>x.id===dragId); if(!c||c.etapa===etapa){ dragId=null; return; }
+    showLoading("Movendo...");
+    try{ await setDoc(doc(clientesRef,dragId),{ ...c, etapa, atualizadoEm:new Date().toISOString() }); }catch(e){ console.error(e); }
+    dragId=null; hideLoading();
+  };
+
+  function renderFunil(){
+    const lista=clientesVisiveis();
+    const cols={ lead:[], negociacao:[], fechado:[] };
+    lista.forEach(c=> (cols[c.etapa]||cols.lead).push(c));
+    document.getElementById("cntLead").textContent=cols.lead.length;
+    document.getElementById("cntNeg").textContent=cols.negociacao.length;
+    document.getElementById("cntFec").textContent=cols.fechado.length;
+    const card=(c)=>`
+      <div class="leadCard" draggable="true" data-id="${c.id}" ondragstart="iniciarDrag(event,'${c.id}')" ondragend="fimDrag(event)" onclick="abrirFicha('${c.id}')">
+        <div class="nm">${c.nome||"—"} ${tagsHtml(c.tags)}</div>
+        <div class="meta">${c.telefone||""}</div>
+      </div>`;
+    document.getElementById("colLead").innerHTML=cols.lead.map(card).join("")||'<div class="hint">Vazio</div>';
+    document.getElementById("colNeg").innerHTML=cols.negociacao.map(card).join("")||'<div class="hint">Vazio</div>';
+    document.getElementById("colFec").innerHTML=cols.fechado.map(card).join("")||'<div class="hint">Vazio</div>';
+  }
+  window.iniciarDrag=function(ev,id){ dragId=id; ev.currentTarget.classList.add("dragging"); };
+  window.fimDrag=function(ev){ ev.currentTarget.classList.remove("dragging"); };
 
   // ===== LEMBRETES =====
   function renderLembretes(){
-    const lista = clientesVisiveis();
-    const mesAtual = new Date().getMonth()+1;
+    const lista=clientesVisiveis();
+    const mesAtual=new Date().getMonth()+1;
+    const aniv=lista.filter(c=>{ if(!c.nascimento) return false; return Number((c.nascimento.split("-")[1])||0)===mesAtual; })
+                    .sort((a,b)=>Number(a.nascimento.split("-")[2])-Number(b.nascimento.split("-")[2]));
+    document.getElementById("aniversariantes").innerHTML = aniv.length? `<table><thead><tr><th>Dia</th><th>Nome</th><th>Telefone</th><th>Zap</th></tr></thead><tbody>${
+      aniv.map(c=>`<tr><td><b>${c.nascimento.split("-")[2]}</b></td><td>${c.nome}</td><td>${c.telefone||"—"}</td><td><button class="btn wa sm" onclick="abrirWhats('${zap(c.telefone)}')">💬</button></td></tr>`).join("")
+    }</tbody></table>` : '<div class="hint">Nenhum aniversariante este mês.</div>';
 
-    // aniversariantes do mês
-    const aniv = lista.filter(c=>{
-      if(!c.nascimento) return false;
-      const m = Number((c.nascimento.split("-")[1])||0);
-      return m===mesAtual;
-    }).sort((a,b)=> Number(a.nascimento.split("-")[2]) - Number(b.nascimento.split("-")[2]));
-
-    if(aniv.length===0){ document.getElementById("aniversariantes").innerHTML='<div class="hint">Nenhum aniversariante este mês.</div>'; }
-    else {
-      document.getElementById("aniversariantes").innerHTML = `<table><thead><tr><th>Dia</th><th>Nome</th><th>Telefone</th></tr></thead><tbody>${
-        aniv.map(c=>{ const d=c.nascimento.split("-")[2]; return `<tr><td><b>${d}</b></td><td>${c.nome}</td><td>${c.telefone||"—"}</td></tr>`; }).join("")
-      }</tbody></table>`;
-    }
-
-    // pós-venda: clientes fechados sem atualização há 30+ dias
-    const agora = Date.now();
-    const pos = lista.filter(c=>{
-      if(c.etapa!=="fechado") return false;
-      const at = c.atualizadoEm ? new Date(c.atualizadoEm).getTime() : 0;
-      return (agora - at) > 30*24*60*60*1000;
-    });
-    if(pos.length===0){ document.getElementById("posVenda").innerHTML='<div class="hint">Nenhum cliente para pós-venda no momento.</div>'; }
-    else {
-      document.getElementById("posVenda").innerHTML = `<table><thead><tr><th>Nome</th><th>Telefone</th><th>Última atualização</th></tr></thead><tbody>${
-        pos.map(c=>`<tr><td><b>${c.nome}</b></td><td>${c.telefone||"—"}</td><td>${c.atualizadoEm?new Date(c.atualizadoEm).toLocaleDateString("pt-BR"):"—"}</td></tr>`).join("")
-      }</tbody></table>`;
-    }
+    const agora=Date.now();
+    const pos=lista.filter(c=>{ if(c.etapa!=="fechado") return false; const at=c.atualizadoEm?new Date(c.atualizadoEm).getTime():0; return (agora-at)>30*24*60*60*1000; });
+    document.getElementById("posVenda").innerHTML = pos.length? `<table><thead><tr><th>Nome</th><th>Telefone</th><th>Última atualização</th><th>Zap</th></tr></thead><tbody>${
+      pos.map(c=>`<tr><td><b>${c.nome}</b></td><td>${c.telefone||"—"}</td><td>${c.atualizadoEm?new Date(c.atualizadoEm).toLocaleDateString("pt-BR"):"—"}</td><td><button class="btn wa sm" onclick="abrirWhats('${zap(c.telefone)}')">💬</button></td></tr>`).join("")
+    }</tbody></table>` : '<div class="hint">Nenhum cliente para pós-venda agora.</div>';
   }
 </script>
 </body>
