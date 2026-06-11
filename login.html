@@ -79,7 +79,7 @@
 
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
-  import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, onAuthStateChanged, sendPasswordResetEmail }
+  import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, onAuthStateChanged, sendPasswordResetEmail, sendEmailVerification, signOut }
     from "https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js";
   import { getFirestore, doc, setDoc, getDoc, collection, query, where, getDocs }
     from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js";
@@ -100,7 +100,10 @@
   const db   = getFirestore(app);
 
   onAuthStateChanged(auth, async (user)=>{
-    if(user){ showLoading("Verificando acesso..."); await redirectByUser(user); }
+    if(user){
+      showLoading("Verificando acesso...");
+      await redirectByUser(user);
+    }
   });
 
   async function getProfile(uid){
