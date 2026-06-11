@@ -4709,7 +4709,7 @@
 </script>
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
-  import { getAuth, onAuthStateChanged, signOut }
+  import { getAuth, onAuthStateChanged, signOut, sendEmailVerification }
     from "https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js";
   import { getFirestore, doc, getDoc, getDocs, setDoc, onSnapshot, collection, deleteDoc }
     from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js";
@@ -4729,10 +4729,20 @@
 
   // Guarda o perfil do usuário logado globalmente
   window.OMNIA_USER = null;
+  const SUPER_ADMIN_EMAIL = "davi.vieira.each@gmail.com";
 
   onAuthStateChanged(auth, async (user)=>{
     if(!user){
       // Não logado → manda pro login
+      window.location.href = "./login.html";
+      return;
+    }
+
+    // BLOQUEIO: e-mail não verificado não acessa (super admin é isento)
+    const ehSuper = (user.email||"").toLowerCase() === SUPER_ADMIN_EMAIL;
+    if(!ehSuper && !user.emailVerified){
+      alert("Seu e-mail ainda não foi verificado. Verifique sua caixa de entrada (e o spam) e clique no link antes de acessar.");
+      await signOut(auth);
       window.location.href = "./login.html";
       return;
     }
@@ -4948,6 +4958,20 @@
 
   function aplicarPermissoes(role){
     const isAdmin = role === "admin";
+    const isSuper = role === "superadmin";
+
+    // Botão CRM — só para super admin
+    if(isSuper && !document.getElementById("btnCRM")){
+      const ref = document.getElementById("btnSettings");
+      if(ref && ref.parentNode){
+        const b = document.createElement("button");
+        b.className = "btn";
+        b.id = "btnCRM";
+        b.textContent = "📇 CRM";
+        b.onclick = ()=> window.location.href = "./crm.html";
+        ref.parentNode.insertBefore(b, ref);
+      }
+    }
 
     // Botão extra de Admin (gerenciar vendedores) — só para admin
     if(isAdmin && !document.getElementById("btnAdminPanel")){
@@ -4997,6 +5021,42 @@
   }
 
   // Logout
+  // Banner de aviso para e-mail não verificado
+  function mostrarAvisoVerificacao(user){
+    if(!user || user.emailVerified) return; // verificado: não mostra nada
+    if(document.getElementById("avisoVerifEmail")) return; // já existe
+
+    const bar = document.createElement("div");
+    bar.id = "avisoVerifEmail";
+    bar.style.cssText = "position:sticky;top:0;z-index:50;background:linear-gradient(180deg,rgba(255,209,102,.20),rgba(255,209,102,.12));border-bottom:1px solid rgba(255,209,102,.4);color:#ffd166;padding:10px 16px;font-size:13px;display:flex;align-items:center;justify-content:center;gap:12px;flex-wrap:wrap;text-align:center;";
+    bar.innerHTML = `
+      <span>⚠️ Seu e-mail ainda não foi verificado. Confira sua caixa de entrada (e o spam).</span>
+      <button id="btnReenviarVerif" style="padding:5px 12px;border-radius:8px;border:1px solid rgba(255,209,102,.5);background:rgba(255,209,102,.18);color:#ffd166;font-size:12px;font-weight:700;cursor:pointer">Reenviar e-mail</button>
+      <button id="btnJaVerifiquei" style="padding:5px 12px;border-radius:8px;border:1px solid rgba(255,255,255,.2);background:rgba(255,255,255,.08);color:#e7eefc;font-size:12px;font-weight:700;cursor:pointer">Já verifiquei</button>
+    `;
+    document.body.insertBefore(bar, document.body.firstChild);
+
+    document.getElementById("btnReenviarVerif").onclick = async ()=>{
+      try{
+        await sendEmailVerification(user);
+        alert("E-mail de verificação reenviado! Confira sua caixa de entrada e o spam.");
+      }catch(e){
+        alert("Não foi possível reenviar agora. Tente novamente em alguns minutos.");
+      }
+    };
+    document.getElementById("btnJaVerifiquei").onclick = async ()=>{
+      try{
+        await user.reload();
+        if(user.emailVerified){
+          bar.remove();
+          alert("E-mail verificado com sucesso! ✅");
+        } else {
+          alert("Ainda não detectamos a verificação. Clique no link do e-mail e tente de novo.");
+        }
+      }catch(e){ alert("Erro ao checar. Recarregue a página."); }
+    };
+  }
+
   document.getElementById("btnLogout")?.addEventListener("click", async ()=>{
     if(!confirm("Deseja sair da sua conta?")) return;
     await signOut(auth);
