@@ -2917,15 +2917,15 @@
       setTimeout(()=>burstFx(rect.right - 110, rect.top + 40), 140);
     }
 
-    const maxRockets = (mode==="store") ? 3 : 5;
-    const list = rows.slice(0, maxRockets);
+    // Mostra TODOS os vendedores (sem limite), cada um em sua própria raia horizontal
+    const list = rows.slice();
 
-    // Altura dinâmica da pista conforme número de foguetes (evita sobreposição)
-    const espaco = 40;        // distância vertical entre foguetes
-    const topo = 18;          // margem do topo
+    // Altura dinâmica da pista conforme número de foguetes (cada um tem sua raia)
+    const espaco = 46;        // distância vertical entre as raias
+    const topo = 20;          // margem do topo
     const nLinhas = list.length + (mode==="store" ? 1 : 0);
-    const alturaNecessaria = topo + nLinhas*espaco + 20;
-    race.style.height = Math.max(150, alturaNecessaria) + "px";
+    const alturaNecessaria = topo + nLinhas*espaco + 24;
+    race.style.height = Math.max(160, alturaNecessaria) + "px";
 
     list.forEach((r, i)=>{
       const s = getSeller(r.sellerId);
