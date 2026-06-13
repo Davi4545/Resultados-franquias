@@ -1874,7 +1874,8 @@
           <button class="btn" data-act="down" data-id="${sid}">↓</button>
           <button class="btn warn" data-act="pause" data-id="${sid}">${s.paused ? "Retomar" : "Pausar"}</button>
           <button class="btn bad" data-act="remove" data-id="${sid}">Tirar</button>
-          ${(window.OMNIA_USER && window.OMNIA_USER.role==="admin") ? `<button class="btn bad" data-act="delete" data-id="${sid}" title="Excluir vendedor da operação">🗑</button>` : ""}
+          ${(window.OMNIA_USER && (window.OMNIA_USER.role==="admin"||window.OMNIA_USER.role==="superadmin")) ? `<button class="btn" data-act="edit" data-id="${sid}" title="Editar nome e foto do vendedor">✏️</button>` : ""}
+          ${(window.OMNIA_USER && (window.OMNIA_USER.role==="admin"||window.OMNIA_USER.role==="superadmin")) ? `<button class="btn bad" data-act="delete" data-id="${sid}" title="Excluir vendedor da operação">🗑</button>` : ""}
         </div>
       `;
       q.appendChild(item);
@@ -3386,7 +3387,65 @@
   // ======================
   // FILA + FLUXO
   // ======================
+  // Editar nome e foto de um vendedor da operação (admin/super)
+  function abrirEditarVendedor(sid){
+    const s = getSeller(sid);
+    if(!s){ alert("Vendedor não encontrado."); return; }
+    const box = document.getElementById("editVendedorModal");
+    box.querySelector("#evNome").value = s.name || "";
+    box.querySelector("#evFotoPreview").src = s.photo || "";
+    box.querySelector("#evFotoPreview").style.display = s.photo ? "block" : "none";
+    box.dataset.sid = sid;
+    box.querySelector("#evFoto").value = "";
+    openModal(box);
+  }
+  window.fecharEditarVendedor = function(){ closeModal(document.getElementById("editVendedorModal")); };
+
+  // Lê arquivo de imagem e mostra preview
+  window.evOnFotoChange = function(input){
+    const f = input.files && input.files[0];
+    if(!f) return;
+    const reader = new FileReader();
+    reader.onload = (e)=>{
+      const prev = document.getElementById("evFotoPreview");
+      prev.src = e.target.result;
+      prev.style.display = "block";
+    };
+    reader.readAsDataURL(f);
+  };
+
+  window.salvarEditarVendedor = function(){
+    const box = document.getElementById("editVendedorModal");
+    const sid = box.dataset.sid;
+    const s = getSeller(sid);
+    if(!s){ alert("Vendedor não encontrado."); return; }
+    const novoNome = (box.querySelector("#evNome").value || "").trim();
+    if(!novoNome){ alert("Digite o nome do vendedor."); return; }
+    s.name = novoNome;
+    const prev = document.getElementById("evFotoPreview");
+    if(prev && prev.src && prev.style.display !== "none"){
+      s.photo = prev.src;
+    }
+    save(state);
+    try{ renderAll(); }catch(e){}
+    closeModal(box);
+  };
+
+  window.evRemoverFoto = function(){
+    const box = document.getElementById("editVendedorModal");
+    const sid = box.dataset.sid;
+    const s = getSeller(sid);
+    if(s){ s.photo = ""; }
+    const prev = document.getElementById("evFotoPreview");
+    prev.src = ""; prev.style.display = "none";
+  };
+
   function handleQueueAction(act, sid){
+    // Editar vendedor: funciona mesmo se estiver em atendimento ou fora da fila
+    if(act === "edit"){
+      abrirEditarVendedor(sid);
+      return;
+    }
     if(isSellerInAttendance(sid)){
       alert("Esse vendedor está em atendimento. Finalize antes de mover/remover.");
       return;
@@ -5251,6 +5310,34 @@
 <thead><tr><th>Dia</th><th>Hora</th><th>Valor</th><th>Peças</th></tr></thead>
 <tbody class="vvBody"></tbody>
 </table>
+</div>
+</div>
+</div>
+</div>
+
+<!-- MODAL EDITAR VENDEDOR -->
+<div class="modalBack" id="editVendedorModal">
+<div class="modal">
+<div class="modalHead">
+<h3>✏️ Editar vendedor</h3>
+<button class="close" onclick="fecharEditarVendedor()">Fechar</button>
+</div>
+<div class="modalBody">
+<div class="field">
+<label>Nome do vendedor</label>
+<input id="evNome" placeholder="Nome do vendedor" style="padding:10px 12px;border-radius:10px;border:1px solid rgba(255,255,255,.12);background:rgba(255,255,255,.06);color:#e7eefc;font-size:14px;width:100%" />
+</div>
+<div class="divider"></div>
+<div class="field">
+<label>Foto (opcional)</label>
+<img id="evFotoPreview" src="" alt="" style="display:none;width:80px;height:80px;object-fit:cover;border-radius:12px;border:1px solid rgba(255,255,255,.12);margin-bottom:8px" />
+<input id="evFoto" type="file" accept="image/*" onchange="evOnFotoChange(this)" style="font-size:13px;color:#9db0d0" />
+<button class="btn bad" onclick="evRemoverFoto()" style="margin-top:8px;padding:4px 10px;font-size:12px;width:fit-content">Remover foto</button>
+</div>
+<div class="divider"></div>
+<div style="display:flex;gap:10px;justify-content:flex-end">
+<button class="btn" onclick="fecharEditarVendedor()">Cancelar</button>
+<button class="btn good" onclick="salvarEditarVendedor()">Salvar</button>
 </div>
 </div>
 </div>
