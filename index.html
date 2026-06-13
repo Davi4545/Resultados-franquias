@@ -2376,9 +2376,9 @@
     box.querySelector(".vvResumo").innerHTML =
       `${regs.length} venda(s) · Faturamento ${formatMoney(totalFat)} · ${formatNum(totalPecas)} peça(s)`;
     box.querySelector(".vvBody").innerHTML = linhas;
-    box.classList.add("show");
+    openModal(box);
   }
-  window.fecharVendasVendedor = function(){ document.getElementById("vendasVendedorModal").classList.remove("show"); };
+  window.fecharVendasVendedor = function(){ closeModal(document.getElementById("vendasVendedorModal")); };
 
   function renderData(){
     const view = $("dataView").value;
