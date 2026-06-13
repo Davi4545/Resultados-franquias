@@ -2341,6 +2341,45 @@
     return table;
   }
 
+  // Abre modal com todas as vendas do vendedor no mês (mais recente primeiro)
+  function abrirVendasVendedor(sid, monthKey){
+    const s = getSeller(sid);
+    const nome = s?.name || "Vendedor";
+    // todas as vendas do vendedor no mês escolhido, só as que venderam, ordenadas por data desc
+    const regs = state.records
+      .filter(r=> r.sellerId===sid && r.monthKey===monthKey && r.outcome==="sold")
+      .sort((a,b)=> (b.tsEnd||b.tsStart||0) - (a.tsEnd||a.tsStart||0));
+
+    const totalFat = regs.reduce((acc,r)=> acc + Number(r.value||0), 0);
+    const totalPecas = regs.reduce((acc,r)=> acc + Number(r.pieces||0), 0);
+
+    let linhas;
+    if(regs.length===0){
+      linhas = `<tr><td colspan="4" style="text-align:center;color:#9db0d0;padding:20px">Nenhuma venda registrada neste mês.</td></tr>`;
+    } else {
+      linhas = regs.map(r=>{
+        const dt = new Date(r.tsStart);
+        const dia = r.dateKey.split("-").reverse().join("/");
+        const hh = String(dt.getHours()).padStart(2,"0");
+        const mm = String(dt.getMinutes()).padStart(2,"0");
+        return `<tr>
+          <td>${dia}</td>
+          <td>${hh}:${mm}</td>
+          <td><b>${formatMoney(r.value||0)}</b></td>
+          <td>${formatNum(r.pieces||0)}</td>
+        </tr>`;
+      }).join("");
+    }
+
+    const box = document.getElementById("vendasVendedorModal");
+    box.querySelector(".vvTitulo").textContent = "Vendas de " + nome;
+    box.querySelector(".vvResumo").innerHTML =
+      `${regs.length} venda(s) · Faturamento ${formatMoney(totalFat)} · ${formatNum(totalPecas)} peça(s)`;
+    box.querySelector(".vvBody").innerHTML = linhas;
+    box.classList.add("show");
+  }
+  window.fecharVendasVendedor = function(){ document.getElementById("vendasVendedorModal").classList.remove("show"); };
+
   function renderData(){
     const view = $("dataView").value;
     const { chosenDate, chosenMonth } = filterRecordsForDataView();
@@ -2379,11 +2418,25 @@
         if(b.sales !== a.sales) return b.sales - a.sales;
         return b.revenue - a.revenue;
       });
-      const body = rows.map((r, idx)=>{
+      const table = document.createElement("table");
+      table.innerHTML = `<thead><tr><th>#</th><th>Vendedor</th><th>Atend.</th><th>Vendas</th><th>Conv.</th><th>P.A.(venda)</th><th>Fat.</th></tr></thead>`;
+      const tb = document.createElement("tbody");
+      rows.forEach((r, idx)=>{
         const s = getSeller(r.sellerId);
-        return [String(idx+1), s?.name || "Vendedor", formatNum(r.atend), formatNum(r.sales), r.conv.toFixed(1)+"%", r.paPerSale.toFixed(2), formatMoney(r.revenue)];
+        const tr = document.createElement("tr");
+        tr.innerHTML = `<td>${idx+1}</td>
+          <td><button class="linkVend" data-sid="${r.sellerId}" style="background:none;border:none;color:#62a8ff;font-weight:700;cursor:pointer;text-decoration:underline;font-size:13px;padding:0">${s?.name || "Vendedor"}</button></td>
+          <td>${formatNum(r.atend)}</td><td>${formatNum(r.sales)}</td>
+          <td>${r.conv.toFixed(1)}%</td><td>${r.paPerSale.toFixed(2)}</td><td>${formatMoney(r.revenue)}</td>`;
+        tb.appendChild(tr);
       });
-      wrap.appendChild(makeTable(["#","Vendedor","Atend.","Vendas","Conv.","P.A.(venda)","Fat."], body));
+      table.appendChild(tb);
+      wrap.appendChild(table);
+      wrap.querySelectorAll(".linkVend").forEach(b=> b.addEventListener("click", ()=> abrirVendasVendedor(b.dataset.sid, chosenMonth)));
+      const dica = document.createElement("div");
+      dica.className = "hint"; dica.style.textAlign = "left";
+      dica.innerHTML = "💡 Clique no nome de um vendedor para ver todas as vendas dele no mês.";
+      wrap.appendChild(dica);
       return;
     }
 
@@ -2439,13 +2492,30 @@
         if(b.sales !== a.sales) return b.sales - a.sales;
         return b.revenue - a.revenue;
       });
-      const body = rows.map((r, idx)=>{
+      const table = document.createElement("table");
+      table.innerHTML = `<thead><tr><th>#</th><th>Vendedor</th><th>Atend.</th><th>Vendas</th><th>Conv.</th><th>P.A.(venda)</th><th>Fat.</th></tr></thead>`;
+      const tb = document.createElement("tbody");
+      rows.forEach((r, idx)=>{
         const s = getSeller(r.sellerId);
-        return [String(idx+1), s?.name || "Vendedor", formatNum(r.atend), formatNum(r.sales), r.conv.toFixed(1)+"%", r.paPerSale.toFixed(2), formatMoney(r.revenue)];
+        const tr = document.createElement("tr");
+        tr.innerHTML = `<td>${idx+1}</td>
+          <td><button class="linkVend" data-sid="${r.sellerId}" style="background:none;border:none;color:#62a8ff;font-weight:700;cursor:pointer;text-decoration:underline;font-size:13px;padding:0">${s?.name || "Vendedor"}</button></td>
+          <td>${formatNum(r.atend)}</td><td>${formatNum(r.sales)}</td>
+          <td>${r.conv.toFixed(1)}%</td><td>${r.paPerSale.toFixed(2)}</td><td>${formatMoney(r.revenue)}</td>`;
+        tb.appendChild(tr);
       });
-      wrap.appendChild(makeTable(["#","Vendedor","Atend.","Vendas","Conv.","P.A.(venda)","Fat."], body));
+      table.appendChild(tb);
+      wrap.appendChild(table);
+      wrap.querySelectorAll(".linkVend").forEach(b=> b.addEventListener("click", ()=> abrirVendasVendedor(b.dataset.sid, chosenMonth)));
+      const dica = document.createElement("div");
+      dica.className = "hint";
+      dica.style.textAlign = "left";
+      dica.innerHTML = "💡 Clique no nome de um vendedor para ver todas as vendas dele.";
+      wrap.appendChild(dica);
       return;
     }
+
+    if(view === "dayRank2_placeholder"){ return; }
 
     if(view === "raw"){
       if(recsMonth.length === 0){
@@ -5158,6 +5228,27 @@
     window.location.href = "./login.html";
   });
 </script>
+
+<!-- MODAL VENDAS DO VENDEDOR -->
+<div class="modalBack" id="vendasVendedorModal">
+<div class="modal">
+<div class="modalHead">
+<h3 class="vvTitulo">Vendas do vendedor</h3>
+<button class="close" onclick="fecharVendasVendedor()">Fechar</button>
+</div>
+<div class="modalBody">
+<div class="hint vvResumo" style="text-align:left"></div>
+<div class="divider"></div>
+<div style="max-height:50vh;overflow:auto">
+<table style="width:100%">
+<thead><tr><th>Dia</th><th>Hora</th><th>Valor</th><th>Peças</th></tr></thead>
+<tbody class="vvBody"></tbody>
+</table>
+</div>
+</div>
+</div>
+</div>
+
 </body>
 </html>
  
