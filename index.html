@@ -2015,6 +2015,10 @@
                 <label>📱 Telefone do cliente</label>
                 <input id="cliTel_${cid}" inputmode="tel" placeholder="(00) 00000-0000" />
               </div>
+              <div class="field" style="min-width:170px">
+                <label>🎂 Aniversário</label>
+                <input id="cliNasc_${cid}" type="date" />
+              </div>
             </div>
           </div>
 
@@ -3546,11 +3550,13 @@
     if(outcome==="sold"){
       const cliNome = ($("cliNome_"+cid)?.value || "").trim();
       const cliTel  = ($("cliTel_"+cid)?.value || "").trim();
+      const cliNasc = ($("cliNasc_"+cid)?.value || "").trim();
       if(cliNome && cliTel){
         try{
           if(window.OMNIA_CRM_UPSERT) window.OMNIA_CRM_UPSERT({
             nome: cliNome,
             telefone: cliTel,
+            nascimento: cliNasc,
             valorCompra: value,
             descCompra: pieces>0 ? (pieces+" peça(s)") : "Compra",
             sellerId: sid,
@@ -5099,6 +5105,7 @@
             ...existente,
             nome: existente.nome || info.nome,
             telefone: info.telefone,
+            nascimento: existente.nascimento || info.nascimento || "",
             etapa: "fechado",
             compras, interacoes,
             atualizadoEm: nowIso
@@ -5107,7 +5114,7 @@
           const id = "cli_"+Date.now()+"_"+Math.random().toString(36).slice(2,7);
           await setDoc(doc(clientesRef, id), {
             id, nome: info.nome, telefone: info.telefone,
-            email:"", cpf:"", nascimento:"", obs:"", tags:[],
+            email:"", cpf:"", nascimento: info.nascimento || "", obs:"", tags:[],
             etapa: "fechado",
             proximoContato:"",
             compras: novaCompra ? [novaCompra] : [],
