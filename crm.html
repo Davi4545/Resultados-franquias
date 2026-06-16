@@ -129,6 +129,9 @@
             <option value="negociacao">🟡 Negociação</option>
             <option value="fechado">🟢 Fechado</option>
           </select>
+          <select id="filtroVendedor" onchange="renderClientes()" style="display:none;padding:8px 10px;border-radius:10px;border:1px solid rgba(255,255,255,.12);background:rgba(255,255,255,.06);color:#e7eefc;font-size:13px">
+            <option value="">Todos os vendedores</option>
+          </select>
           <select id="ordenar" onchange="renderClientes()" style="padding:8px 10px;border-radius:10px;border:1px solid rgba(255,255,255,.12);background:rgba(255,255,255,.06);color:#e7eefc;font-size:13px">
             <option value="nome">Nome (A-Z)</option>
             <option value="gasto">Maior gasto</option>
@@ -445,11 +448,27 @@
     const lista=clientesVisiveis();
     const busca=(document.getElementById("buscaCliente").value||"").toLowerCase();
     const fEtapa=(document.getElementById("filtroEtapa")||{}).value||"";
+    const fVend=(document.getElementById("filtroVendedor")||{}).value||"";
     const ord=(document.getElementById("ordenar")||{}).value||"nome";
+
+    // popula o dropdown de vendedores (só admin/super) com os donos existentes
+    const selVend = document.getElementById("filtroVendedor");
+    if(selVend && (MY.role==="admin"||MY.role==="superadmin")){
+      selVend.style.display = "inline-block";
+      const donos = {};
+      lista.forEach(c=>{ if(c.ownerUid) donos[c.ownerUid] = c.ownerNome || c.ownerUid; });
+      const atual = selVend.value;
+      const opts = ['<option value="">Todos os vendedores</option>']
+        .concat(Object.entries(donos).sort((a,b)=>(a[1]||"").localeCompare(b[1]||"")).map(([uid,nome])=>`<option value="${uid}">${nome}</option>`));
+      selVend.innerHTML = opts.join("");
+      selVend.value = atual; // mantém seleção
+    }
+
     let filtrados=lista.filter(c=>{
       const okBusca = !busca || (c.nome||"").toLowerCase().includes(busca) || (c.telefone||"").includes(busca);
       const okEtapa = !fEtapa || c.etapa===fEtapa;
-      return okBusca && okEtapa;
+      const okVend = !fVend || c.ownerUid===fVend;
+      return okBusca && okEtapa && okVend;
     });
     // ordenação
     if(ord==="gasto") filtrados.sort((a,b)=> totalGasto(b)-totalGasto(a));
