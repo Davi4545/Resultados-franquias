@@ -162,7 +162,7 @@
   import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
   import { getAuth, onAuthStateChanged, signOut }
     from "https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js";
-  import { getFirestore, doc, getDoc, setDoc, collection, onSnapshot }
+  import { getFirestore, doc, getDoc, setDoc, deleteDoc, collection, onSnapshot }
     from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js";
 
   const firebaseConfig = {
@@ -387,9 +387,21 @@
       return `<tr><td><b>${r.nome||"—"}</b></td><td>${m.entrada?m.entrada.hora:"--"}</td>
         <td>${m.intervalo?m.intervalo.hora:"--"}</td><td>${m.retorno?m.retorno.hora:"--"}</td>
         <td>${m.saida?m.saida.hora:"--"}</td><td><b>${fmtMin(minutosTrabalhados(r))}</b></td>
-        <td><span class="tag ${s.tag}">${s.label}</span></td></tr>`;
+        <td><span class="tag ${s.tag}">${s.label}</span></td>
+        <td><button class="btn bad sm" onclick="excluirPonto('${r.id}','${(r.nome||"").replace(/'/g,"")}','${r.data}')">🗑</button></td></tr>`;
     }).join("");
-    document.getElementById("equipeTabela").innerHTML=`<table><thead><tr><th>Colaborador</th><th>Entrada</th><th>Interv.</th><th>Retorno</th><th>Saída</th><th>Horas</th><th>Status</th></tr></thead><tbody>${rows}</tbody></table>`;
+    document.getElementById("equipeTabela").innerHTML=`<table><thead><tr><th>Colaborador</th><th>Entrada</th><th>Interv.</th><th>Retorno</th><th>Saída</th><th>Horas</th><th>Status</th><th>Ação</th></tr></thead><tbody>${rows}</tbody></table>`;
+  };
+
+  // Excluir registro de ponto (só admin/super)
+  window.excluirPonto=async function(id, nome, data){
+    if(!(MY.role==="admin"||MY.role==="superadmin")){ alert("Sem permissão."); return; }
+    const dataFmt=(data||"").split("-").reverse().join("/");
+    if(!confirm(`Excluir o ponto de "${nome}" do dia ${dataFmt}?\n\nIsso apaga TODAS as marcações desse dia (entrada, intervalo, retorno, saída). Esta ação não pode ser desfeita.`)) return;
+    showLoading("Excluindo ponto...");
+    try{ await deleteDoc(doc(pontoRef, id)); }
+    catch(e){ console.error(e); alert("Erro ao excluir."); }
+    hideLoading();
   };
 
   // ===== RELATÓRIO POR PERÍODO (admin) =====
