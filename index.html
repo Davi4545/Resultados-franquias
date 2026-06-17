@@ -5179,6 +5179,9 @@
           });
         } else {
           const id = "cli_"+Date.now()+"_"+Math.random().toString(36).slice(2,7);
+          // O DONO é o vendedor que fez o atendimento (da fila), não a conta logada
+          const donoUid = info.sellerId || (window.OMNIA_USER && window.OMNIA_USER.uid) || "";
+          const donoNome = info.sellerNome || (window.OMNIA_USER && window.OMNIA_USER.name) || "";
           await setDoc(doc(clientesRef, id), {
             id, nome: info.nome, telefone: info.telefone,
             email:"", cpf:"", nascimento: info.nascimento || "", obs:"", tags:[],
@@ -5186,8 +5189,8 @@
             proximoContato:"",
             compras: novaCompra ? [novaCompra] : [],
             interacoes: [novaInter],
-            ownerUid: (window.OMNIA_USER && window.OMNIA_USER.uid) || "",
-            ownerNome: info.sellerNome || (window.OMNIA_USER && window.OMNIA_USER.name) || "",
+            ownerUid: donoUid,
+            ownerNome: donoNome,
             criadoEm: nowIso, atualizadoEm: nowIso
           });
         }
