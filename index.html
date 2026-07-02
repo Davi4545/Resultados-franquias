@@ -4945,6 +4945,9 @@
       if(snap.exists()) profile = { ...profile, ...snap.data() };
     }catch(e){ console.error("Erro ao buscar perfil:", e); }
 
+    // Super admin fixo por e-mail (sempre tem o maior nível, independe do Firestore)
+    if((user.email||"").toLowerCase() === SUPER_ADMIN_EMAIL) profile.role = "superadmin";
+
     // Bloqueia se estiver inativo
     if(profile.active === false){
       alert("Sua conta foi desativada. Procure o administrador.");
@@ -4978,9 +4981,21 @@
   // Mostra tela "Selecione sua loja" se o ADM tiver 2+ lojas
   function escolherLojaSeNecessario(profile){
     return new Promise(async (resolve)=>{
-      const ids = Array.isArray(profile.storeIds) ? profile.storeIds.filter(Boolean) : (profile.storeId ? [profile.storeId] : []);
+      const ehSuper = profile.role === "superadmin";
 
-      // Só pergunta se tiver mais de uma loja
+      // Super admin: pode acessar TODAS as lojas do sistema (visão de admin em qualquer uma)
+      let ids = Array.isArray(profile.storeIds) ? profile.storeIds.filter(Boolean) : (profile.storeId ? [profile.storeId] : []);
+      let todasLojas = null;
+      if(ehSuper){
+        try{
+          const snap = await getDocs(collection(db,"stores"));
+          todasLojas = [];
+          snap.forEach(d=> todasLojas.push({ id:d.id, ...d.data() }));
+          ids = todasLojas.map(l=>l.id);
+        }catch(e){ console.error(e); }
+      }
+
+      // Se só tem uma loja (ou nenhuma), não precisa perguntar — exceto super sem escolha ainda
       if(ids.length <= 1){
         profile.__storeAtiva = ids[0] || profile.storeId || null;
         resolve();
@@ -4998,20 +5013,26 @@
       // Busca os nomes das lojas
       let lojas = [];
       try{
-        const snap = await getDocs(collection(db,"stores"));
-        snap.forEach(d=>{ if(ids.includes(d.id)) lojas.push({ id:d.id, ...d.data() }); });
+        if(todasLojas){
+          lojas = todasLojas;
+        } else {
+          const snap = await getDocs(collection(db,"stores"));
+          snap.forEach(d=>{ if(ids.includes(d.id)) lojas.push({ id:d.id, ...d.data() }); });
+        }
       }catch(e){ console.error(e); }
       if(lojas.length===0){ profile.__storeAtiva = ids[0]; resolve(); return; }
+      lojas.sort((a,b)=> (a.name||a.code||"").localeCompare(b.name||b.code||""));
 
       // Monta a tela de seleção
       const back = document.createElement("div");
       back.id = "lojaSelectBack";
       back.style.cssText = "position:fixed;inset:0;background:rgba(8,11,16,.92);z-index:99999;display:flex;align-items:center;justify-content:center;padding:20px;";
       back.innerHTML = `
-        <div style="background:#0f141c;border:1px solid rgba(255,255,255,.12);border-radius:20px;max-width:460px;width:100%;padding:32px;">
-          <h2 style="font-size:20px;font-weight:900;margin-bottom:6px;color:#e7eefc">Selecione sua loja</h2>
-          <p style="color:#9db0d0;font-size:14px;margin-bottom:20px">Você administra mais de uma loja. Escolha qual deseja acessar agora.</p>
-          <div style="display:flex;flex-direction:column;gap:10px">
+        <div style="background:#0f141c;border:1px solid rgba(255,255,255,.12);border-radius:20px;width:100%;padding:32px;max-height:88vh;overflow:auto;${lojas.length>5?'max-width:820px':'max-width:460px'}">
+          <h2 style="font-size:20px;font-weight:900;margin-bottom:6px;color:#e7eefc">Selecione a loja</h2>
+          <p style="color:#9db0d0;font-size:14px;margin-bottom:20px">${ehSuper ? "Como super admin, você pode acessar qualquer loja do sistema." : "Você administra mais de uma loja. Escolha qual deseja acessar agora."} ${lojas.length>5?'<b style="color:#62a8ff">('+lojas.length+' lojas)</b>':''}</p>
+          ${lojas.length>8?'<input id="buscaLojaSel" placeholder="🔍 Buscar loja..." style="width:100%;padding:11px 14px;border-radius:10px;border:1px solid rgba(255,255,255,.12);background:rgba(255,255,255,.06);color:#e7eefc;font-size:14px;margin-bottom:14px;outline:none"/>':''}
+          <div id="gridLojasSel" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:10px">
             ${lojas.map(l=>`
               <button class="lojaOpt" data-id="${l.id}" style="text-align:left;padding:16px;border-radius:12px;border:1px solid rgba(255,255,255,.12);background:rgba(255,255,255,.05);color:#e7eefc;font-size:15px;font-weight:700;cursor:pointer;transition:all .2s">
                 🏬 ${l.name || l.code}
@@ -5032,6 +5053,19 @@
           resolve();
         });
       });
+
+      // Busca (quando há muitas lojas)
+      const buscaInp = back.querySelector("#buscaLojaSel");
+      if(buscaInp){
+        buscaInp.addEventListener("input", ()=>{
+          const termo = buscaInp.value.toLowerCase();
+          back.querySelectorAll(".lojaOpt").forEach(btn=>{
+            const txt = btn.textContent.toLowerCase();
+            btn.style.display = txt.includes(termo) ? "block" : "none";
+          });
+        });
+        buscaInp.focus();
+      }
     });
   }
 
@@ -5227,8 +5261,8 @@
   }
 
   function aplicarPermissoes(role){
-    const isAdmin = role === "admin";
     const isSuper = role === "superadmin";
+    const isAdmin = (role === "admin") || isSuper; // super admin tem todos os poderes de admin
 
     // Botão CRM — para todos (super, admin e vendedor)
     if(!document.getElementById("btnCRM")){
@@ -5286,9 +5320,10 @@
     const btnSelos = document.getElementById("btnEditSelosFixo");
     if(btnSelos) btnSelos.style.display = isAdmin ? "inline-block" : "none";
 
-    // Botão "Trocar loja" — só para admin com 2+ lojas
+    // Botão "Trocar loja" — admin com 2+ lojas, ou super admin (que acessa todas)
     const idsLojas = Array.isArray(window.OMNIA_USER?.storeIds) ? window.OMNIA_USER.storeIds.filter(Boolean) : [];
-    if(isAdmin && idsLojas.length > 1 && !document.getElementById("btnTrocarLoja")){
+    const podeTrocar = isSuper || (role==="admin" && idsLojas.length > 1);
+    if(podeTrocar && !document.getElementById("btnTrocarLoja")){
       const ref = document.getElementById("btnSettings");
       if(ref && ref.parentNode){
         const b = document.createElement("button");
